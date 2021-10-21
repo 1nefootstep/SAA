@@ -343,7 +343,7 @@ module AnnotationKnowledgeBank {
     }
   }
 
-  type DataAndTimeRange =
+  export type DataAndTimeRange =
     | {
         hasData: true;
         data: number;
