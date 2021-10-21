@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   controlRow: {
     // flex: 1,
     height: 130,
-    backgroundColor: "black",
+    // backgroundColor: "black",
   },
   timeDisplay: {
     height: 20,

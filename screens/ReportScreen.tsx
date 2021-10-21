@@ -13,6 +13,7 @@ export default function TabThreeScreen({ navigation }) {
   const [result, setResult] = React.useState<AKB.ComputedResult>({
     averageVelocities: [],
     strokeFrequencies: [],
+    strokeLengths: [],
   });
   return (
     <View style={styles.container}>
@@ -30,15 +31,24 @@ export default function TabThreeScreen({ navigation }) {
         <ScrollView contentContainerStyle={styles.resultContainer}>
           {result.averageVelocities.map((e, i) => {
             return (
-              <Text>
-                Average velocity #{i}: {e ?? ""}
+              <Text key={i}>
+                Average velocity #{i}: {e.hasData ? e.data.toFixed(3) : ""}m/s
               </Text>
             );
           })}
+          <Text>{"\n"}</Text>
           {result.strokeFrequencies.map((e, i) => {
             return (
-              <Text>
-                Stroke freq #{i}: {e ?? ""}
+              <Text key={i}>
+                Stroke freq #{i}: {e.hasData ? e.data.toFixed(3) : ""}stroke/s
+              </Text>
+            );
+          })}
+          <Text>{"\n"}</Text>
+          {result.strokeLengths.map((e, i) => {
+            return (
+              <Text key={i}>
+                Stroke lengths #{i}: {e.hasData ? e.data.toFixed(3) : ""}m/stroke
               </Text>
             );
           })}

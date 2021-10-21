@@ -343,27 +343,51 @@ module AnnotationKnowledgeBank {
     }
   }
 
-  function computeStrokeFrequencies() {
+  type DataAndTimeRange =
+    | {
+        hasData: true;
+        data: number;
+        startTime: number;
+        endTime: number;
+      }
+    | {
+        hasData: false;
+        startTime: number;
+        endTime: number;
+      };
+
+  function computeStrokeFrequencies(): Array<DataAndTimeRange> {
     const sc = annotationInfo.strokeCounts;
     return sc
       .filter((s) => s.hasEndTime)
       .map((s) => {
         if (s.hasEndTime) {
-          const time = (s.endTime - s.startTime) /1000; //convert to seconds
-          return s.strokeCount / time;
+          const time = (s.endTime - s.startTime) / 1000; //convert to seconds
+          return {
+            hasData: true,
+            data: s.strokeCount / time,
+            startTime: s.startTime,
+            endTime: s.endTime,
+          };
         }
         // should never reach this line
-        return -1;
+        throw "Should have already filtered non end-time strokes";
       });
   }
 
+  function getDistanceTimeMap(): Array<{ distance: number; time: number }> {
+    const anns = annotationInfo.annotations;
+    return anns.map((e) => {
+      return { distance: e.distance, time: e.timestamp };
+    });
+  }
 
-  function computeAverageVelocities() {
+  function computeAverageVelocities(): Array<DataAndTimeRange> {
     const anns = annotationInfo.annotations;
     let prevTimestamp = -1;
     let prevDistance = -1;
     let isFirst = true;
-    const result: Array<number> = [];
+    const result: Array<DataAndTimeRange> = [];
     for (let i = 0; i < anns.length; i++) {
       if (isFirst) {
         isFirst = false;
@@ -374,7 +398,12 @@ module AnnotationKnowledgeBank {
         const currDistance = anns[i].distance;
         const timeTaken = (currTimestamp - prevTimestamp) / 1000; // convert to seconds
         const distance = currDistance - prevDistance;
-        result.push(distance / timeTaken);
+        result.push({
+          hasData: true,
+          data: distance / timeTaken,
+          startTime: prevTimestamp,
+          endTime: currTimestamp,
+        });
         prevTimestamp = currTimestamp;
         prevDistance = currDistance;
       }
@@ -387,16 +416,40 @@ module AnnotationKnowledgeBank {
   }
 
   export interface ComputedResult {
-    strokeFrequencies: number[];
-    averageVelocities: number[];
+    distanceToTimeMap: { distance: number; time: number }[];
+    strokeLengths: DataAndTimeRange[];
+    strokeFrequencies: DataAndTimeRange[];
+    averageVelocities: DataAndTimeRange[];
   }
 
-  export function computeResult():ComputedResult {
-    const averageVelocities = computeAverageVelocities();
-    const strokeFrequencies = computeStrokeFrequencies();
+  export function computeResult(): ComputedResult {
+    const averageVelocitiesWithTimestamp = computeAverageVelocities();
+    const strokeFrequenciesWithTimestamp = computeStrokeFrequencies();
+    const findStrokeFreqForCheckpoint = (startTime: number, endTime: number) =>
+      strokeFrequenciesWithTimestamp.find(
+        (e) => e.startTime >= startTime && e.endTime <= endTime
+      );
+
+    const strokeLengthsWithTimestamp: Array<DataAndTimeRange> =
+      averageVelocitiesWithTimestamp.map((e) => {
+        const found = findStrokeFreqForCheckpoint(e.startTime, e.endTime);
+        if (e.hasData && found !== undefined && found.hasData) {
+          return {
+            hasData: true,
+            data: e.data / found.data,
+            startTime: e.startTime,
+            endTime: e.endTime,
+          };
+        }
+        return { hasData: false, startTime: e.startTime, endTime: e.endTime };
+      });
+    
+    const distanceTimeMap = getDistanceTimeMap();
     return {
-      averageVelocities: averageVelocities,
-      strokeFrequencies: strokeFrequencies,
+      averageVelocities: averageVelocitiesWithTimestamp,
+      strokeFrequencies: strokeFrequenciesWithTimestamp,
+      strokeLengths: strokeLengthsWithTimestamp,
+      distanceToTimeMap: distanceTimeMap,
     };
   }
 }

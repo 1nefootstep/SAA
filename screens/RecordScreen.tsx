@@ -48,6 +48,7 @@ async function cameraPermission():Promise<boolean> {
     const microphonePermission = await Camera.getMicrophonePermissionStatus();
     let finalCameraPermission = cameraPermission;
     let finalMicrophonePermission = microphonePermission;
+    console.log(`cameraPermission: ${cameraPermission} microphonePermission: ${microphonePermission}`);
     if (cameraPermission !== 'authorized') {
       const newCameraPermission = await Camera.requestCameraPermission();
       finalCameraPermission = newCameraPermission;
