@@ -22,7 +22,7 @@ import MenuButton from "../components/MenuButton";
 import { Text, View } from "../components/Themed";
 import { default as AKB } from "../state_management/AnnotationKnowledgeBank";
 
-export default function TabThreeScreen({ navigation }) {
+export default function ReportScreen({ navigation }) {
   const [result, setResult] = React.useState<AKB.ComputedResult>({
     averageVelocities: [],
     strokeFrequencies: [],

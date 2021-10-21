@@ -22,7 +22,7 @@ import SideMenu from "../components/video-side-menu/SideMenu";
 import TimerTool from "../components/video-side-menu/TimerTool";
 import FineControlBar from "../components/video-components/FineControlBar";
 
-export default function TabTwoScreen({ navigation }) {
+export default function VideoScreen({ navigation }) {
   const video = useRef<Video>(null);
   const [snackbarVisible, setSnackbarVisible] = useState<boolean>(false);
   const [frameRate, setFrameRate] = useState<number>(0);

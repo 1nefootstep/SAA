@@ -17,9 +17,9 @@ import { ColorSchemeName, Pressable, TouchableOpacity } from "react-native";
 import useColorScheme from "../hooks/useColorScheme";
 import ModalScreen from "../screens/ModalScreen";
 import NotFoundScreen from "../screens/NotFoundScreen";
-import TabOneScreen from "../screens/RecordScreen";
-import TabTwoScreen from "../screens/VideoScreen";
-import TabThreeScreen from "../screens/ReportScreen";
+import RecordScreen from "../screens/RecordScreen";
+import VideoScreen from "../screens/VideoScreen";
+import ReportScreen from "../screens/ReportScreen";
 // import {
 //   RootStackParamList,
 // } from "../types";
@@ -81,7 +81,7 @@ function DrawerNavigator() {
     <Drawer.Navigator initialRouteName="TabOne">
       <Drawer.Screen
         name="Record"
-        component={TabOneScreen}
+        component={RecordScreen}
         options={{
           title: "Record",
           headerShown: false,
@@ -90,7 +90,7 @@ function DrawerNavigator() {
       />
       <Drawer.Screen
         name="Annotate"
-        component={TabTwoScreen}
+        component={VideoScreen}
         options={{
           title: "Annotate",
           headerShown: false,
@@ -99,7 +99,7 @@ function DrawerNavigator() {
       />
       <Drawer.Screen
         name="Result"
-        component={TabThreeScreen}
+        component={ReportScreen}
         options={{
           title: "Result",
           headerShown: false,
