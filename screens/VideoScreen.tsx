@@ -169,32 +169,6 @@ export default function TabTwoScreen({ navigation }) {
             videoRef={video}
             tickWidth={20}
           />
-          {/* <View style={styles.innerRowSection}>
-            <View style={styles.frameStepButton}>
-              <StepBackwardButton
-                callbackOnPress={() => {
-                  if (isLoaded && video.current !== null) {
-                    video.current!.setPositionAsync(
-                      VKB.previousFrameTimeInMillis(currentFrameNumber),
-                      { toleranceMillisBefore: 0, toleranceMillisAfter: 0 }
-                    );
-                  }
-                }}
-              />
-            </View>
-            <View style={styles.frameStepButton}>
-              <StepForwardButton
-                callbackOnPress={() => {
-                  if (isLoaded && video.current !== null) {
-                    video.current!.setPositionAsync(
-                      VKB.nextFrameTimeInMillis(currentFrameNumber),
-                      { toleranceMillisBefore: 0, toleranceMillisAfter: 0 }
-                    );
-                  }
-                }}
-              />
-            </View>
-          </View> */}
         </View>
         <View style={[styles.innerRow, { justifyContent: "center" }]}>
           <View style={styles.timeDisplay}>
@@ -241,7 +215,6 @@ const styles = StyleSheet.create({
     // justifyContent: "center",
     paddingTop: Constants.statusBarHeight,
     // backgroundColor: '#ecf0f1',
-    backgroundColor: 'black',
     padding: 8,
   },
   menuIcon: {
@@ -255,13 +228,11 @@ const styles = StyleSheet.create({
     // width: "100%",
     flex: 1,
     flexDirection: "row",
-    backgroundColor: 'black',
   },
   videoSpace: {
     flex: 9,
     justifyContent: "center",
     flexDirection: "row",
-    backgroundColor: 'black',
   },
   video: {
     // width: "20%",

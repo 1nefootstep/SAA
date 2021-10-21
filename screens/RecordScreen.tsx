@@ -22,29 +22,47 @@ import { formatTimeFromPosition } from "../components/TimeFormattingUtil";
 import FileHandler from "../FileHandler/FileHandler";
 import MenuButton from "../components/MenuButton";
 
-async function hasAndroidPermission() {
-  const permissions = [
-    PermissionsAndroid.PERMISSIONS.CAMERA, 
-    PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
-  ];
-  let allPermissionsGranted = true;
-  const granted:Array<Promise<boolean>> = permissions.map(async (permission) => {
-    const hasPermission = await PermissionsAndroid.check(permission);
-    if (hasPermission) {
-      return true;
+async function readWritePermission() {
+  if (Platform.OS === 'android') {
+    const readPermission = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE);
+    const writePermission = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
+    let finalReadPermission = readPermission;
+    let finalWritePermission = writePermission;
+    console.log(`readPermission: ${readPermission} writePermission: ${writePermission}`);
+    if (!readPermission) {
+      const newReadPermission = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE);
+      finalReadPermission = newReadPermission === 'granted';
     }
-  
-    const status = await PermissionsAndroid.request(permission);
-    return status === PermissionsAndroid.RESULTS.GRANTED;
-  });
-
-  return granted.every(async (ele: Promise<boolean>) => await ele);
+    if (!writePermission) {
+      const newWritePermission = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
+      finalWritePermission = newWritePermission === 'granted';
+    }
+    return finalReadPermission && finalWritePermission;
+  }
+  return true;
 }
 
+async function cameraPermission():Promise<boolean> {
+  if (Platform.OS === 'android') {
+    const cameraPermission = await Camera.getCameraPermissionStatus();
+    const microphonePermission = await Camera.getMicrophonePermissionStatus();
+    let finalCameraPermission = cameraPermission;
+    let finalMicrophonePermission = microphonePermission;
+    if (cameraPermission !== 'authorized') {
+      const newCameraPermission = await Camera.requestCameraPermission();
+      finalCameraPermission = newCameraPermission;
+    }
+    if (microphonePermission !== 'authorized') {
+      const newMicrophonePermission = await Camera.requestMicrophonePermission();
+      finalMicrophonePermission = newMicrophonePermission;
+    }
+    return finalCameraPermission === 'authorized' && finalMicrophonePermission === 'authorized';
+  }
+  return true;
+}
 
 async function saveVideo(tag) {
-  if (Platform.OS === "android" && !(await hasAndroidPermission())) {
+  if (Platform.OS === "android" && !(await readWritePermission())) {
     return;
   }
   FileHandler.moveVideoToAppFolder(tag).then(()=>console.log('successfully moved.')).catch((err)=>console.log(`failed to move: ${err}`));
@@ -54,7 +72,8 @@ async function saveVideo(tag) {
 export default function TabOneScreen({ navigation }) {
   React.useEffect(() => {
     (async () => {
-      await hasAndroidPermission();
+      await cameraPermission();
+      await readWritePermission();
     })();
   }, []);
 

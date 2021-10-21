@@ -3,8 +3,9 @@
     "name": "SAA",
     "slug": "SAA",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "landscape",
     "icon": "./assets/icon.png",
+    "scheme": "SAA",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
