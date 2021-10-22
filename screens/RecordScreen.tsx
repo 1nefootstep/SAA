@@ -24,36 +24,6 @@ import { formatTimeFromPosition } from "../components/TimeFormattingUtil";
 import FileHandler from "../FileHandler/FileHandler";
 import MenuButton from "../components/MenuButton";
 
-async function readWritePermission() {
-  if (Platform.OS === "android") {
-    const readPermission = await PermissionsAndroid.check(
-      PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
-    );
-    const writePermission = await PermissionsAndroid.check(
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
-    );
-    let finalReadPermission = readPermission;
-    let finalWritePermission = writePermission;
-    console.log(
-      `readPermission: ${readPermission} writePermission: ${writePermission}`
-    );
-    if (!readPermission) {
-      const newReadPermission = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
-      );
-      finalReadPermission = newReadPermission === "granted";
-    }
-    if (!writePermission) {
-      const newWritePermission = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
-      );
-      finalWritePermission = newWritePermission === "granted";
-    }
-    return finalReadPermission && finalWritePermission;
-  }
-  return true;
-}
-
 async function cameraPermission(): Promise<boolean> {
   if (Platform.OS === "android") {
     const cameraPermission = await Camera.getCameraPermissionStatus();
@@ -81,10 +51,10 @@ async function cameraPermission(): Promise<boolean> {
 }
 
 async function saveVideo(tag) {
-  if (Platform.OS === "android" && !(await readWritePermission())) {
+  if (Platform.OS === "android" && !(await FileHandler.readWritePermission())) {
     return;
   }
-  FileHandler.moveVideoToAppFolder(tag)
+  FileHandler.saveVideoToCameraRoll(tag)
     .then(() => console.log("successfully moved."))
     .catch((err) => console.log(`failed to move: ${err}`));
 }
@@ -93,7 +63,7 @@ export default function RecordScreen({ navigation }) {
   React.useEffect(() => {
     (async () => {
       await cameraPermission();
-      await readWritePermission();
+      await FileHandler.readWritePermission();
       setGotPermission(true);
     })();
   }, []);
