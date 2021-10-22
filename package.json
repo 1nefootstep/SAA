@@ -2,6 +2,7 @@
   "scripts": {
     "start": "react-native start",
     "android": "react-native run-android",
+    "android-release": "react-native run-android --variant=release",
     "android-bundle": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res",
     "ios": "react-native run-ios",
     "web": "expo start --web",
@@ -9,6 +10,7 @@
   },
   "dependencies": {
     "@miblanchard/react-native-slider": "^2.0.2",
+    "@react-native-community/cameraroll": "^4.1.2",
     "@react-navigation/drawer": "^6.1.8",
     "@react-navigation/native": "^6.0.6",
     "expo": "~43.0.0-beta.4",
