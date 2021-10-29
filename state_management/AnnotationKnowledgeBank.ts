@@ -3,6 +3,7 @@ import FileHandler from "../FileHandler/FileHandler";
 import {
   AnnotationMode,
   Freestyle100mMode,
+  Freestyle200mMode,
   Freestyle50mMode,
   NameDistance,
 } from "./AnnotationMode/AnnotationMode";
@@ -51,6 +52,7 @@ module AnnotationKnowledgeBank {
   const modes: AnnotationMode[] = [
     new Freestyle50mMode(),
     new Freestyle100mMode(),
+    new Freestyle200mMode(),
   ];
 
   let currentMode = modes[0];
@@ -85,6 +87,10 @@ module AnnotationKnowledgeBank {
       }
     }
     return false;
+  }
+
+  export function getCurrentMode(): string {
+    return currentMode.name;
   }
 
   export function getCurrentAnnotation(currentPosition: number): NameDistance {
