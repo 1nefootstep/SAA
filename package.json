@@ -13,7 +13,7 @@
     "@react-native-community/cameraroll": "^4.1.2",
     "@react-navigation/drawer": "^6.1.8",
     "@react-navigation/native": "^6.0.6",
-    "expo": "~43.0.0-beta.4",
+    "expo": "^43.0.1",
     "expo-asset": "~8.4.2",
     "expo-av": "~10.1.1",
     "expo-constants": "~12.1.1",
