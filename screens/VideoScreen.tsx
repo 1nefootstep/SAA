@@ -21,6 +21,7 @@ import MenuButton from "../components/MenuButton";
 import SideMenu from "../components/video-side-menu/SideMenu";
 import TimerTool from "../components/video-side-menu/TimerTool";
 import FineControlBar from "../components/video-components/FineControlBar";
+import ModeOverlay from "../components/video-components/ModeOverlay";
 
 export default function VideoScreen({ navigation }) {
   const video = useRef<Video>(null);
@@ -44,13 +45,11 @@ export default function VideoScreen({ navigation }) {
 
   const [timers, setTimers] = useState<Array<number>>([]);
 
-  let annotation = AKB.getCurrentAnnotation(
-    currentPositionMillis
-  );
+  let annotation = AKB.getCurrentAnnotation(currentPositionMillis);
 
   const setTrackTimestampCorrected = (a: Array<number>) => {
     setTrackTimestamp([-1, ...a]);
-  }
+  };
 
   const handleWhenVKBDone = async () => {
     if (video.current !== null) {
@@ -195,14 +194,14 @@ export default function VideoScreen({ navigation }) {
               setDurationFrameNumber(0);
             }}
           />
+          <ModeOverlay />
         </View>
         <Snackbar
           visible={snackbarVisible}
           onDismiss={() => setSnackbarVisible(false)}
           duration={300}
         >
-          {annotation.name}:{" "}
-          {formatTimeFromPosition(currentPositionMillis)}
+          {annotation.name}: {formatTimeFromPosition(currentPositionMillis)}
         </Snackbar>
       </View>
     </View>
