@@ -30,6 +30,7 @@
     "react-native": "0.64.2",
     "react-native-chart-kit": "^6.11.0",
     "react-native-document-picker": "^7.1.0",
+    "react-native-elements": "^3.4.2",
     "react-native-ffmpeg": "^0.5.2",
     "react-native-fs": "^2.18.0",
     "react-native-gesture-handler": "~1.10.2",

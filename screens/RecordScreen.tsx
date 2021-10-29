@@ -1,14 +1,9 @@
-import React, { useRef, useState } from "react";
-import {
-  PermissionsAndroid,
-  Platform,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import React, { useCallback, useRef, useState } from "react";
+import { Platform, StyleSheet, TouchableOpacity } from "react-native";
 
 import { Snackbar } from "react-native-paper";
 
-import { AntDesign, Ionicons } from "@expo/vector-icons";
+import { AntDesign, Fontisto } from "@expo/vector-icons";
 
 import AnnotationKnowledgeBank from "../state_management/AnnotationKnowledgeBank";
 import {
@@ -17,12 +12,13 @@ import {
   VideoFile,
 } from "react-native-vision-camera";
 
-import { MenuIcon, Text, View } from "../components/Themed";
+import { Text, View } from "../components/Themed";
 import RecordStartStopButton from "../components/video-recorder/RecordStartStopButton";
 import VideoRecorder from "../components/video-recorder/VideoRecorder";
 import { formatTimeFromPosition } from "../components/TimeFormattingUtil";
 import FileHandler from "../FileHandler/FileHandler";
 import MenuButton from "../components/MenuButton";
+import { useSharedValue, withSpring } from "react-native-reanimated";
 
 async function cameraPermission(): Promise<boolean> {
   if (Platform.OS === "android") {
@@ -126,6 +122,7 @@ export default function RecordScreen({ navigation }) {
                 setMillisSnackbar(new Date() - recordStartTime);
                 AnnotationKnowledgeBank.addEarlyCheckpoint({
                   timestamp: millisSnackbar,
+                  distance: 0,
                 });
                 setSnackbarVisible(true);
               }
@@ -173,6 +170,11 @@ const styles = StyleSheet.create({
   checkpointButton: {
     position: "absolute",
     top: "65%",
+    right: "6%",
+  },
+  zoomButton: {
+    position: "absolute",
+    top: "85%",
     right: "6%",
   },
   menuIcon: {
