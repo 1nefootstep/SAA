@@ -1,5 +1,4 @@
 import Util from "../components/Util";
-import FileHandler from "../FileHandler/FileHandler";
 import {
   AnnotationMode,
   Freestyle100mMode,
@@ -242,6 +241,10 @@ module AnnotationKnowledgeBank {
     }
   }
 
+  export function getAnnotationInfo(): AnnotationInformation {
+    return annotationInfo;
+  }
+
   export function getAnnotations(): CheckpointAnnotation[] {
     return annotationInfo.annotations;
   }
@@ -311,43 +314,50 @@ module AnnotationKnowledgeBank {
     annotationInfo.annotations.splice(0, annotationInfo.annotations.length);
   }
 
-  export async function saveAnnotationInfo(filename: string) {
-    return FileHandler.saveTextToAppFolder(filename, annotationInfoToJson());
-  }
+  // export async function saveAnnotationInfo(filename: string) {
+  //   return FileHandler.saveTextToAppFolder(filename, annotationInfoToJson());
+  // }
 
-  export async function saveAnnotationInfoWithVideoFilePath(
-    videoFilePath: string
-  ) {
-    return FileHandler.saveTextToAppFolder(
-      `${FileHandler.getBaseName(videoFilePath)}.txt`,
-      annotationInfoToJson()
-    );
-  }
+  // export async function saveAnnotationInfoWithVideoFilePath(
+  //   videoFilePath: string
+  // ) {
+  //   return FileHandler.saveTextToAppFolder(
+  //     `${FileHandler.getBaseName(videoFilePath)}.txt`,
+  //     annotationInfoToJson()
+  //   );
+  // }
 
-  export async function loadAnnotationInfoWithVideoFilePath(
-    videoFilePath: string
-  ) {
-    const response = await FileHandler.readTextWithVideoFile(videoFilePath);
-    if (response.isAvailable) {
-      loadAnnotationInfo(response.response, (e) =>
-        console.log(`load annotation info failed: ${e}`)
-      );
-    } else {
-      console.log("response is not available.");
+  // export async function loadAnnotationInfoWithVideoFilePath(
+  //   videoFilePath: string
+  // ) {
+  //   const response = await FileHandler.readTextWithVideoFile(videoFilePath);
+  //   if (response.isAvailable) {
+  //     loadAnnotationInfo(response.response, (e) =>
+  //       console.log(`load annotation info failed: ${e}`)
+  //     );
+  //   } else {
+  //     console.log("response is not available.");
+  //   }
+  // }
+
+  // export function loadAnnotationInfo(
+  //   infoInJson: string,
+  //   callbackIfFailParse: (e: any) => void
+  // ) {
+  //   try {
+  //     annotationInfo = JSON.parse(infoInJson);
+  //     console.log(annotationInfo);
+  //   } catch (e: any) {
+  //     callbackIfFailParse(e);
+  //   }
+  // }
+
+    export function loadAnnotationInfo(a: AnnotationInformation) {
+      console.log(`loading...`);
+      console.log(a);
+      annotationInfo = a;
+      
     }
-  }
-
-  export function loadAnnotationInfo(
-    infoInJson: string,
-    callbackIfFailParse: (e: any) => void
-  ) {
-    try {
-      annotationInfo = JSON.parse(infoInJson);
-      console.log(annotationInfo);
-    } catch (e: any) {
-      callbackIfFailParse(e);
-    }
-  }
 
   export type DataAndTimeRange =
     | {

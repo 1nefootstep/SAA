@@ -96,9 +96,7 @@ export default function RecordScreen({ navigation }) {
                   onRecordingFinished: (videoFile: VideoFile) => {
                     console.log("stop recording");
                     console.log(videoFile.path);
-                    AnnotationKnowledgeBank.saveAnnotationInfoWithVideoFilePath(
-                      videoFile.path
-                    );
+                    FileHandler.saveVideoAndAnnotations(videoFile.path);
                     AnnotationKnowledgeBank.clearEarlyCheckpoints();
                     saveVideo(videoFile.path)
                       .then(() => console.log("saved successfully."))

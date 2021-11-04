@@ -22,6 +22,7 @@ import SideMenu from "../components/video-side-menu/SideMenu";
 import TimerTool from "../components/video-side-menu/TimerTool";
 import FineControlBar from "../components/video-components/FineControlBar";
 import ModeOverlay from "../components/video-components/ModeOverlay";
+import FileHandler from "../FileHandler/FileHandler";
 
 export default function VideoScreen({ navigation }) {
   const video = useRef<Video>(null);
@@ -51,7 +52,10 @@ export default function VideoScreen({ navigation }) {
     setTrackTimestamp([-1, ...a]);
   };
 
-  const handleWhenVKBDone = async () => {
+  const handleWhenVKBDone = async (shouldCacheVideo: boolean, videoFilePath: string) => {
+    if (shouldCacheVideo) {
+      FileHandler.saveVideoAndAnnotations(videoFilePath);
+    }
     if (video.current !== null) {
       const status: AVPlaybackStatus = await video.current!.getStatusAsync();
       if (status.isLoaded) {

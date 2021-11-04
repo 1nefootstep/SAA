@@ -3,9 +3,20 @@ import * as RNFS from "react-native-fs";
 
 import CameraRoll from "@react-native-community/cameraroll";
 
-import {APP_NAME} from "../constants/Strings";
+import { APP_NAME } from "../constants/Strings";
+import { default as AKB } from "../state_management/AnnotationKnowledgeBank";
+import { default as VKB } from "../state_management/VideoKnowledgeBank";
 
 module FileHandler {
+  export interface DataObject {
+    annotationInfo: AKB.AnnotationInformation;
+    videoInformation: VKB.VideoInformation;
+  }
+
+  function getDestinationFolder() {
+    return RNFS.ExternalDirectoryPath;
+  }
+
   export async function readWritePermission() {
     if (Platform.OS === "android") {
       const readPermission = await PermissionsAndroid.check(
@@ -36,22 +47,9 @@ module FileHandler {
     return true;
   }
 
-  // async function getDirPath() {
-  //   if (Platform.OS === "android") {
-  //     await readWritePermission();
-  //     // return `${RNFS.ExternalStorageDirectoryPath}/${APP_NAME}`;
-  //     return `${RNFS.DocumentDirectoryPath}/${APP_NAME}`;
-      
-  //     // return `${RNFS.ExternalDirectoryPath}/${APP_NAME}`;
-  //   } else {
-  //     // need to figure out what's best for ios
-  //     return `${RNFS.MainBundlePath}/${APP_NAME}`;
-  //   }
-  // }
-
   export function getBaseName(path: string): string {
     let base = new String(path).substring(path.lastIndexOf("/") + 1);
-    if (base.lastIndexOf(".") != -1) {   
+    if (base.lastIndexOf(".") != -1) {
       base = base.substring(0, base.lastIndexOf("."));
     }
     return base;
@@ -61,59 +59,83 @@ module FileHandler {
     return new String(path).substring(path.lastIndexOf("/") + 1);
   }
 
-  export type TextResponse = {
-    isAvailable: true,
-    response: string,
-  } | { isAvailable: false, }
+  export type TextResponse =
+    | {
+        isAvailable: true;
+        response: string;
+      }
+    | { isAvailable: false };
 
-  export async function saveTextToAppFolder(filename:string, text:string){
+  export async function saveTextToAppFolder(filename: string, text: string) {
     // const dirPath = await getDirPath();
-    const destination = `${RNFS.DocumentDirectoryPath}/${filename}`;
+    const destination = `${getDestinationFolder()}/${filename}`;
     // await RNFS.mkdir(dirPath);
-    console.log(`trying to write to ${destination}`)
-    RNFS.writeFile(destination, text).then(() => console.log(`wrote to ${destination}`)).catch((err) => console.log(err));
+    console.log(`trying to write to ${destination}`);
+    RNFS.writeFile(destination, text)
+      .then(() => console.log(`wrote to ${destination}`))
+      .catch((err) => console.log(err));
   }
 
-  export async function readText(filepath:string):Promise<TextResponse> {
+  export async function saveVideoAndAnnotations(videoFilePath: string) {
+    const filename = `${FileHandler.getBaseName(videoFilePath)}.txt`;
+    const destination = `${getDestinationFolder()}/${filename}`;
+    const videoInformation = VKB.getVideoInformation();
+    const annotationInfo = AKB.getAnnotationInfo();
+    const data: DataObject = {
+      annotationInfo: annotationInfo,
+      videoInformation: videoInformation,      
+    };
+
+    console.log(`trying to write to ${destination}`);
+    RNFS.writeFile(destination, JSON.stringify(data))
+      .then(() => console.log(`wrote to ${destination}`))
+      .catch((err) => console.log(err));
+  }
+
+  // export function loadAnnotationInfo(
+  //   infoInJson: string,
+  //   callbackIfFailParse: (e: any) => void
+  // ) {
+  //   try {
+  //     annotationInfo = JSON.parse(infoInJson);
+  //     console.log(annotationInfo);
+  //   } catch (e: any) {
+  //     callbackIfFailParse(e);
+  //   }
+  // }
+
+  export async function readText(filepath: string): Promise<TextResponse> {
     const isAvailable = await RNFS.exists(filepath);
     if (!isAvailable) {
-      return {isAvailable: isAvailable};
+      return { isAvailable: isAvailable };
     }
     const response = await RNFS.readFile(filepath);
-    return {isAvailable: isAvailable, response:response};
+    return { isAvailable: isAvailable, response: response };
   }
 
-  export async function readTextWithVideoFile(videopath:string):Promise<TextResponse> {
+  export async function readTextWithVideoFile(
+    videopath: string
+  ): Promise<TextResponse> {
     const basename = getBaseName(videopath);
     // const dirPath = getDirPath();
-    const filepath = `${RNFS.DocumentDirectoryPath}/${basename}.txt`;
+    const filepath = `${getDestinationFolder()}/${basename}.txt`;
     console.log(filepath);
-    
+
     const isAvailable = await RNFS.exists(filepath);
     if (!isAvailable) {
-      return {isAvailable: isAvailable};
+      return { isAvailable: isAvailable };
     }
     const response = await RNFS.readFile(filepath);
-    return {isAvailable: isAvailable, response:response};
+    return { isAvailable: isAvailable, response: response };
   }
 
   export async function saveVideoToCameraRoll(filePath: string) {
     if (Platform.OS === "android" && !(await readWritePermission())) {
       return;
     }
-  
-    CameraRoll.save(filePath, { type:'video', album:'SwimAnalysis' })
-  };
 
-  // export async function moveVideoToAppFolder(source: string): Promise<void> {
-  //   const dirPath = await getDirPath();
-  //   console.log(`trying to save at ${dirPath} directory`);
-  //   const destination = `${dirPath}/${getBaseNameWithFileExtension(source)}`;
-  //   const mkdirResult = RNFS.mkdir(dirPath);
-  //   mkdirResult.catch((reason) => console.log(`${reason}`));
-  //   await mkdirResult;
-  //   return RNFS.moveFile(source, destination);
-  // }
+    CameraRoll.save(filePath, { type: "video", album: "SwimAnalysis" });
+  }
 }
 
 export default FileHandler;

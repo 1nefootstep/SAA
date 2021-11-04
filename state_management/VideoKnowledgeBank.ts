@@ -1,7 +1,14 @@
 import { LogLevel, RNFFprobe, RNFFmpegConfig } from "react-native-ffmpeg";
+
 import Util from "../components/Util";
 
 module VideoKnowledgeBank {
+  export interface VideoInformation {
+    frameInformation: Frame[];
+    avgFrameRate: number;
+    lastFrameNumber: number;
+  }
+
   let frameInformation: Frame[] = [];
   let avgFrameRate: number = 0;
   let lastFrameNumber = 0;
@@ -53,6 +60,10 @@ module VideoKnowledgeBank {
     return avgFrameRate;
   }
   
+  export function getVideoInformation():VideoInformation {
+    return {frameInformation: frameInformation, avgFrameRate: avgFrameRate, lastFrameNumber: lastFrameNumber};
+  }
+
   export function frameNumberToTime(frameNumber: number): number {
     if (frameNumber <= lastFrameNumber && frameNumber >= 0) {
       return frameInformation[frameNumber].timeInMillis;
@@ -74,6 +85,12 @@ module VideoKnowledgeBank {
       return frameInformation[prevFrameNumber].timeInMillis;
     }
     return frameInformation[currentFrameNumber].timeInMillis;
+  }
+
+  export function loadCachedInformation(cached: VideoInformation) {
+    frameInformation = cached.frameInformation;
+    avgFrameRate = cached.avgFrameRate;
+    lastFrameNumber = cached.lastFrameNumber;
   }
 
   export async function loadVideoInformation(
