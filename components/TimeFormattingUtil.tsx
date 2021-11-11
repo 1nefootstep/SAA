@@ -11,9 +11,9 @@ export function formatTimeFromPosition(position: number) {
   const seconds = Math.floor((position % 60000) / 1000);
   const mins = Math.floor(position / 60000);
   if (mins === 0) {
-    return `${pad("00", seconds, true)} : ${pad("000", milliseconds, true)}`;
+    return `${pad("00", seconds, true)}: ${pad("000", milliseconds, true)}`;
   }
-  return `${mins} : ${pad("00", seconds, true)} : ${pad(
+  return `${mins}: ${pad("00", seconds, true)}: ${pad(
     "000",
     milliseconds,
     true

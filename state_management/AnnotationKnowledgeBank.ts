@@ -1,11 +1,7 @@
-import Util from "../components/Util";
-import {
-  AnnotationMode,
-  Freestyle100mMode,
-  Freestyle200mMode,
-  Freestyle50mMode,
-  NameDistance,
-} from "./AnnotationMode/AnnotationMode";
+import { binarySearch, isNotNullNotUndefined } from "../components/Util";
+import { AnnotationMode, NameDistance } from "./AnnotationMode/AnnotationMode";
+import * as Pool50m from "./AnnotationMode/Pool50m";
+import * as Pool25m from "./AnnotationMode/Pool25m";
 
 module AnnotationKnowledgeBank {
   export interface AnnotationInformation {
@@ -48,13 +44,40 @@ module AnnotationKnowledgeBank {
         time: number;
       };
 
-  const modes: AnnotationMode[] = [
-    new Freestyle50mMode(),
-    new Freestyle100mMode(),
-    new Freestyle200mMode(),
+  export type Modes = Array<{
+    poolLength: number;
+    modes: Array<AnnotationMode>;
+  }>;
+
+  const modes: Modes = [
+    {
+      poolLength: 25,
+      modes: [
+        new Pool25m.Freestyle25mMode(),
+        new Pool25m.Freestyle50mMode(),
+        new Pool25m.Freestyle100mMode(),
+        new Pool25m.Freestyle200mMode(),
+        new Pool25m.Freestyle400mMode(),
+      ],
+    },
+    {
+      poolLength: 50,
+      modes: [
+        new Pool50m.Freestyle50mMode(),
+        new Pool50m.Freestyle100mMode(),
+        new Pool50m.Freestyle200mMode(),
+        new Pool50m.Freestyle400mMode(),
+      ],
+    },
   ];
 
-  let currentMode = modes[0];
+  export function getModes(): Modes {
+    return modes;
+  }
+
+  const modePool25m: AnnotationMode[] = [];
+
+  let currentMode = modes[1].modes[0];
 
   let annotationInfo: AnnotationInformation = {
     name: "",
@@ -65,31 +88,31 @@ module AnnotationKnowledgeBank {
 
   let undoStack: Array<CheckpointAnnotation> = [];
 
+  function reset() {
+    annotationInfo = {...annotationInfo, earlyCheckpoints: [], annotations: [], strokeCounts: []};
+  }
+
   export function undoAddedAnnotation(): void {
     const ann: CheckpointAnnotation | undefined = undoStack.pop();
-    if (ann !== undefined) {
+    if (isNotNullNotUndefined(ann)) {
       annotationInfo.annotations = annotationInfo.annotations.filter(
         (e) => e != ann
       );
     }
   }
 
-  export function getModes(): string[] {
-    return modes.map((mode) => mode.name);
-  }
-
-  export function setMode(mode: string): boolean {
-    for (let i = 0; i < modes.length; i++) {
-      if (modes[i].name === mode) {
-        currentMode = modes[i];
-        return true;
-      }
+  export function setMode(poolLengthIndex: number, modeIndex: number): boolean {
+    const modeToSelect = modes[poolLengthIndex].modes[modeIndex];
+    if (isNotNullNotUndefined(modeToSelect)) {
+      currentMode = modeToSelect;
+      reset();
+      return true;
     }
     return false;
   }
 
-  export function getCurrentMode(): string {
-    return currentMode.name;
+  export function getCurrentMode(): AnnotationMode {
+    return currentMode;
   }
 
   export function getCurrentAnnotation(currentPosition: number): NameDistance {
@@ -98,8 +121,7 @@ module AnnotationKnowledgeBank {
       const currAnnotation = annotationInfo.annotations[i];
       const isCurrPosAfterAndDescriptionNotNull =
         currentPosition >= currAnnotation.timestamp &&
-        currAnnotation.description !== null &&
-        currAnnotation.description !== undefined;
+        isNotNullNotUndefined(currAnnotation.description);
       if (isCurrPosAfterAndDescriptionNotNull) {
         for (let j = 0; j < currentMode.checkpointNames.length; j++) {
           if (
@@ -197,7 +219,7 @@ module AnnotationKnowledgeBank {
   export function nextEarlyCheckpoint(
     positionInMillis: number
   ): CheckpointResponse {
-    const nextPosition = Util.binarySearch(
+    const nextPosition = binarySearch(
       annotationInfo.earlyCheckpoints,
       (cp: EarlyCheckpoint) => positionInMillis < cp.timestamp
     );
@@ -215,7 +237,7 @@ module AnnotationKnowledgeBank {
     positionInMillis: number
   ): CheckpointResponse {
     const prevPosition =
-      Util.binarySearch(
+      binarySearch(
         annotationInfo.earlyCheckpoints,
         (cp: EarlyCheckpoint) => positionInMillis < cp.timestamp
       ) - 2;
@@ -250,7 +272,7 @@ module AnnotationKnowledgeBank {
   }
 
   export function nextAnnotation(positionInMillis: number): CheckpointResponse {
-    const nextPosition = Util.binarySearch(
+    const nextPosition = binarySearch(
       annotationInfo.annotations,
       (cp: CheckpointAnnotation) => positionInMillis < cp.timestamp
     );
@@ -266,7 +288,7 @@ module AnnotationKnowledgeBank {
 
   export function prevAnnotation(positionInMillis: number): CheckpointResponse {
     const prevPosition =
-      Util.binarySearch(
+      binarySearch(
         annotationInfo.annotations,
         (cp: CheckpointAnnotation) => positionInMillis < cp.timestamp
       ) - 2;
@@ -314,50 +336,11 @@ module AnnotationKnowledgeBank {
     annotationInfo.annotations.splice(0, annotationInfo.annotations.length);
   }
 
-  // export async function saveAnnotationInfo(filename: string) {
-  //   return FileHandler.saveTextToAppFolder(filename, annotationInfoToJson());
-  // }
-
-  // export async function saveAnnotationInfoWithVideoFilePath(
-  //   videoFilePath: string
-  // ) {
-  //   return FileHandler.saveTextToAppFolder(
-  //     `${FileHandler.getBaseName(videoFilePath)}.txt`,
-  //     annotationInfoToJson()
-  //   );
-  // }
-
-  // export async function loadAnnotationInfoWithVideoFilePath(
-  //   videoFilePath: string
-  // ) {
-  //   const response = await FileHandler.readTextWithVideoFile(videoFilePath);
-  //   if (response.isAvailable) {
-  //     loadAnnotationInfo(response.response, (e) =>
-  //       console.log(`load annotation info failed: ${e}`)
-  //     );
-  //   } else {
-  //     console.log("response is not available.");
-  //   }
-  // }
-
-  // export function loadAnnotationInfo(
-  //   infoInJson: string,
-  //   callbackIfFailParse: (e: any) => void
-  // ) {
-  //   try {
-  //     annotationInfo = JSON.parse(infoInJson);
-  //     console.log(annotationInfo);
-  //   } catch (e: any) {
-  //     callbackIfFailParse(e);
-  //   }
-  // }
-
-    export function loadAnnotationInfo(a: AnnotationInformation) {
-      console.log(`loading...`);
-      console.log(a);
-      annotationInfo = a;
-      
-    }
+  export function loadAnnotationInfo(a: AnnotationInformation) {
+    console.log(`loading...`);
+    console.log(a);
+    annotationInfo = a;
+  }
 
   export type DataAndTimeRange =
     | {
@@ -459,7 +442,7 @@ module AnnotationKnowledgeBank {
         }
         return { hasData: false, startTime: e.startTime, endTime: e.endTime };
       });
-    
+
     const distanceTimeMap = getDistanceTimeMap();
     return {
       averageVelocities: averageVelocitiesWithTimestamp,

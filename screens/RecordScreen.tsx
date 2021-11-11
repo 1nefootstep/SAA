@@ -1,24 +1,17 @@
-import React, { useCallback, useRef, useState } from "react";
-import { Platform, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useRef, useState } from "react";
+import { Platform, StyleSheet } from "react-native";
 
 import { Snackbar } from "react-native-paper";
-
-import { AntDesign, Fontisto } from "@expo/vector-icons";
-
-import AnnotationKnowledgeBank from "../state_management/AnnotationKnowledgeBank";
-import {
-  Camera,
-  CameraCaptureError,
-  VideoFile,
-} from "react-native-vision-camera";
+import { Camera } from "react-native-vision-camera";
 
 import { Text, View } from "../components/Themed";
+
 import RecordStartStopButton from "../components/video-recorder/RecordStartStopButton";
 import VideoRecorder from "../components/video-recorder/VideoRecorder";
-import { formatTimeFromPosition } from "../components/TimeFormattingUtil";
 import FileHandler from "../FileHandler/FileHandler";
 import MenuButton from "../components/MenuButton";
-import { useSharedValue, withSpring } from "react-native-reanimated";
+import ModeOverlay from "../components/video-recorder/ModeOverlay";
+import TimestampButton from "../components/video-recorder/TimestampButton";
 
 async function cameraPermission(): Promise<boolean> {
   if (Platform.OS === "android") {
@@ -46,15 +39,6 @@ async function cameraPermission(): Promise<boolean> {
   return true;
 }
 
-async function saveVideo(tag) {
-  if (Platform.OS === "android" && !(await FileHandler.readWritePermission())) {
-    return;
-  }
-  FileHandler.saveVideoToCameraRoll(tag)
-    .then(() => console.log("successfully moved."))
-    .catch((err) => console.log(`failed to move: ${err}`));
-}
-
 export default function RecordScreen({ navigation }) {
   React.useEffect(() => {
     (async () => {
@@ -70,71 +54,44 @@ export default function RecordScreen({ navigation }) {
   const [millisSnackbar, setMillisSnackbar] = useState<number>(0);
   const cameraRef = useRef<Camera>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [timestampsDone, setTimestampsDone] = useState<number>(0);
+  const [snackbarText, setSnackbarText] = useState<string>("");
 
   return (
     <>
       {gotPermission && (
         <View style={styles.container}>
           <MenuButton navigation={navigation} />
-          <TouchableOpacity
+          <RecordStartStopButton
             style={styles.recordButton}
-            onPress={() => {
-              if (
-                cameraRef.current === null ||
-                cameraRef.current === undefined
-              ) {
-                return;
-              }
-              if (!isRecording) {
-                setIsRecording(true);
-                cameraRef.current!.startRecording({
-                  flash: "off",
-                  onRecordingError: (err: CameraCaptureError) => {
-                    console.log(err);
-                    setIsRecording(false);
-                  },
-                  onRecordingFinished: (videoFile: VideoFile) => {
-                    console.log("stop recording");
-                    console.log(videoFile.path);
-                    FileHandler.saveVideoAndAnnotations(videoFile.path);
-                    AnnotationKnowledgeBank.clearEarlyCheckpoints();
-                    saveVideo(videoFile.path)
-                      .then(() => console.log("saved successfully."))
-                      .catch((err) => console.log(err));
+            isRecording={isRecording}
+            setIsRecording={setIsRecording}
+            setTimestampsDone={setTimestampsDone}
+            setRecordStartTime={setRecordStartTime}
+            cameraRef={cameraRef}
+          />
 
-                    setIsRecording(false);
-                  },
-                });
-                setRecordStartTime(new Date());
-              } else {
-                cameraRef.current!.stopRecording();
-              }
-            }}
-          >
-            <RecordStartStopButton isRecording={isRecording} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.checkpointButton}
-            onPress={() => {
-              if (isRecording) {
-                setMillisSnackbar(new Date() - recordStartTime);
-                AnnotationKnowledgeBank.addEarlyCheckpoint({
-                  timestamp: millisSnackbar,
-                  distance: 0,
-                });
-                setSnackbarVisible(true);
-              }
-            }}
-          >
-            <AntDesign name="star" size={40} color="yellow" />
-          </TouchableOpacity>
+          <TimestampButton
+            style={styles.timestampButton}
+            isRecording={isRecording}
+            recordStartTime={recordStartTime}
+            millisSnackbar={millisSnackbar}
+            setMillisSnackbar={setMillisSnackbar}
+            setSnackbarVisible={setSnackbarVisible}
+            timestampsDone={timestampsDone}
+            setTimestampsDone={setTimestampsDone}
+            setSnackbarText={setSnackbarText}
+          />
+
+          <ModeOverlay style={styles.modeButton} />
+
           <VideoRecorder cameraRef={cameraRef} />
           <Snackbar
             visible={snackbarVisible}
             onDismiss={() => setSnackbarVisible(false)}
             duration={750}
           >
-            Added checkpoint at {formatTimeFromPosition(millisSnackbar)}
+            {snackbarText}
           </Snackbar>
         </View>
       )}
@@ -164,11 +121,18 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "30%",
     right: "3%",
+    backgroundColor: "transparent",
   },
-  checkpointButton: {
+  timestampButton: {
     position: "absolute",
     top: "65%",
     right: "6%",
+  },
+  modeButton: {
+    position: "absolute",
+    top: "10%",
+    right: "6%",
+    backgroundColor: "transparent",
   },
   zoomButton: {
     position: "absolute",

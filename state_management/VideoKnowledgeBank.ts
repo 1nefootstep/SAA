@@ -1,6 +1,6 @@
 import { LogLevel, RNFFprobe, RNFFmpegConfig } from "react-native-ffmpeg";
 
-import Util from "../components/Util";
+import { binarySearch } from "../components/Util";
 
 module VideoKnowledgeBank {
   export interface VideoInformation {
@@ -15,7 +15,7 @@ module VideoKnowledgeBank {
 
   interface Frame {
     timeInMillis: number;
-  }  
+  }
 
   // private functions
   function removeAdditionalTextBeforeFrames(s: string): string {
@@ -32,7 +32,7 @@ module VideoKnowledgeBank {
   function frameToString(frame: Frame): string {
     return `timestamp: ${frame["timeInMillis"]}`;
   }
-  
+
   function parseFrameRate(frameRateInString: string): number {
     if (frameRateInString.includes("/")) {
       const splitted = frameRateInString.split("/");
@@ -48,7 +48,7 @@ module VideoKnowledgeBank {
     if (positionInMillis < 0) {
       return 0;
     }
-    const frameNumber = Util.binarySearch(
+    const frameNumber = binarySearch(
       frameInformation,
       (frame: Frame) => positionInMillis <= frame["timeInMillis"]
     );
@@ -56,12 +56,16 @@ module VideoKnowledgeBank {
     return frameNumber > lastFrameNumber ? lastFrameNumber : frameNumber;
   }
 
-  export function getAvgFrameRate():number {
+  export function getAvgFrameRate(): number {
     return avgFrameRate;
   }
-  
-  export function getVideoInformation():VideoInformation {
-    return {frameInformation: frameInformation, avgFrameRate: avgFrameRate, lastFrameNumber: lastFrameNumber};
+
+  export function getVideoInformation(): VideoInformation {
+    return {
+      frameInformation: frameInformation,
+      avgFrameRate: avgFrameRate,
+      lastFrameNumber: lastFrameNumber,
+    };
   }
 
   export function frameNumberToTime(frameNumber: number): number {
@@ -79,7 +83,9 @@ module VideoKnowledgeBank {
     return frameInformation[currentFrameNumber].timeInMillis;
   }
 
-  export function previousFrameTimeInMillis(currentFrameNumber: number): number {
+  export function previousFrameTimeInMillis(
+    currentFrameNumber: number
+  ): number {
     const prevFrameNumber = currentFrameNumber - 1;
     if (prevFrameNumber >= 0) {
       return frameInformation[prevFrameNumber].timeInMillis;
@@ -131,10 +137,14 @@ module VideoKnowledgeBank {
 
       frameInformation = outputMap["frames"].map(
         (element: { pkt_pts_time: string }) => {
-          return { timeInMillis: Math.floor(parseFloat(element["pkt_pts_time"]) * 1000) };
+          return {
+            timeInMillis: Math.floor(
+              parseFloat(element["pkt_pts_time"]) * 1000
+            ),
+          };
         }
       );
-  
+
       frameInformation.sort(
         (a: Frame, b: Frame) => a["timeInMillis"] - b["timeInMillis"]
       );
@@ -144,7 +154,6 @@ module VideoKnowledgeBank {
       callbackWhenDone();
     });
   }
-
 
   export function printInfo() {
     console.log(`Last frame number: ${lastFrameNumber}`);
