@@ -54,6 +54,7 @@ export default function MenuButton(props: SideMenuProps) {
         currentDistance={props.currentDistance}
         setCurrentDistance={props.setCurrentDistance}
         setTrackTimestamp={props.setTrackTimestamp}
+        videoRef={props.videoRef}
       />
       <TouchableOpacity
         onPress={props.toggleIsLineToolActive}
