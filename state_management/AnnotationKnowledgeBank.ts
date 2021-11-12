@@ -6,6 +6,8 @@ import * as Pool25m from "./AnnotationMode/Pool25m";
 module AnnotationKnowledgeBank {
   export interface AnnotationInformation {
     name: string;
+    poolDistance: PoolDistance;
+    modeIndex: number;
     earlyCheckpoints: EarlyCheckpoint[];
     annotations: CheckpointAnnotation[];
     strokeCounts: StrokeCount[];
@@ -44,32 +46,69 @@ module AnnotationKnowledgeBank {
         time: number;
       };
 
-  export type Modes = Array<{
-    poolLength: number;
-    modes: Array<AnnotationMode>;
-  }>;
+  export enum PoolDistance {
+    Unassigned,
+    D25m,
+    D50m,
+  }
 
-  const modes: Modes = [
-    {
-      poolLength: 25,
-      modes: [
+  /**
+   * Returns pool distance based on the number. Defaults to Unassigned if
+   * no matching pool distance found.
+   * @param num distance of pool in metres
+   * @returns PoolDistance enum
+   */
+  export function numberToPoolDistance(num: number): PoolDistance {
+    switch (num) {
+      case 25:
+        return PoolDistance.D25m;
+      case 50:
+        return PoolDistance.D50m;
+      default:
+        return PoolDistance.Unassigned;
+    }
+  }
+
+  /**
+   * Returns pool distance in metres based on the enum PoolDistance. 
+   * Defaults to 50m pool if no matching pool distance found.
+   * @param pd PoolDistance enum
+   * @returns pool distance in metres
+   */
+  export function poolDistanceToNumber(pd: PoolDistance): number {
+    switch (pd) {
+      case PoolDistance.D25m:
+        return 25;
+      case PoolDistance.D50m:
+        return 50;
+      default:
+        return 50;
+    }
+  }
+
+  export type Modes = Map<PoolDistance, Array<AnnotationMode>>;
+
+  const modes = new Map([
+    [
+      PoolDistance.D25m,
+      [
         new Pool25m.Freestyle25mMode(),
         new Pool25m.Freestyle50mMode(),
         new Pool25m.Freestyle100mMode(),
         new Pool25m.Freestyle200mMode(),
         new Pool25m.Freestyle400mMode(),
       ],
-    },
-    {
-      poolLength: 50,
-      modes: [
+    ],
+    [
+      PoolDistance.D50m,
+      [
         new Pool50m.Freestyle50mMode(),
         new Pool50m.Freestyle100mMode(),
         new Pool50m.Freestyle200mMode(),
         new Pool50m.Freestyle400mMode(),
       ],
-    },
-  ];
+    ],
+  ]);
 
   export function getModes(): Modes {
     return modes;
@@ -77,19 +116,25 @@ module AnnotationKnowledgeBank {
 
   const modePool25m: AnnotationMode[] = [];
 
-  let currentMode = modes[1].modes[0];
+  // let currentMode = modes.get(PoolDistance.D50m)![0];
+  
+  export function defaultAKB():AnnotationInformation {
+    return {
+      name: "",
+      poolDistance: PoolDistance.Unassigned,
+      modeIndex: -1,
+      earlyCheckpoints: [],
+      annotations: [],
+      strokeCounts: [],
+    };
+  }
 
-  let annotationInfo: AnnotationInformation = {
-    name: "",
-    earlyCheckpoints: [],
-    annotations: [],
-    strokeCounts: [],
-  };
+  let annotationInfo = defaultAKB();
 
   let undoStack: Array<CheckpointAnnotation> = [];
 
-  function reset() {
-    annotationInfo = {...annotationInfo, earlyCheckpoints: [], annotations: [], strokeCounts: []};
+  export function reset() {
+    annotationInfo = defaultAKB();
   }
 
   export function undoAddedAnnotation(): void {
@@ -101,27 +146,43 @@ module AnnotationKnowledgeBank {
     }
   }
 
-  export function setMode(poolLengthIndex: number, modeIndex: number): boolean {
-    const modeToSelect = modes[poolLengthIndex].modes[modeIndex];
+  /**
+   * Set annotation mode.
+   * @param poolDistance PoolDistance enum
+   * @param modeIndex index of the race distance
+   * @returns true if succeeded, else false.
+   */
+  export function setMode(pd: PoolDistance, modeIndex: number): boolean {
+    if (pd === PoolDistance.Unassigned) {
+      pd = PoolDistance.D50m;
+    }
+    const modeToSelect = modes.get(pd)![modeIndex];
     if (isNotNullNotUndefined(modeToSelect)) {
-      currentMode = modeToSelect;
-      reset();
+      annotationInfo.poolDistance = pd;
+      annotationInfo.modeIndex = modeIndex;
       return true;
     }
     return false;
   }
 
   export function getCurrentMode(): AnnotationMode {
-    return currentMode;
+    const defaultMode = modes.get(PoolDistance.D50m)![0];
+    const isUnassigned = annotationInfo.poolDistance === PoolDistance.Unassigned;
+    if (isUnassigned) {
+      return defaultMode;
+    }
+    return modes.get(annotationInfo.poolDistance)![annotationInfo.modeIndex] ?? defaultMode;
   }
 
   export function getCurrentAnnotation(currentPosition: number): NameDistance {
     let foundIndex = -1;
+    const currentMode = getCurrentMode();
     for (let i = 0; i < annotationInfo.annotations.length; i++) {
       const currAnnotation = annotationInfo.annotations[i];
       const isCurrPosAfterAndDescriptionNotNull =
         currentPosition >= currAnnotation.timestamp &&
         isNotNullNotUndefined(currAnnotation.description);
+
       if (isCurrPosAfterAndDescriptionNotNull) {
         for (let j = 0; j < currentMode.checkpointNames.length; j++) {
           if (

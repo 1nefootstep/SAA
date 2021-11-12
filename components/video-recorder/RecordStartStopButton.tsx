@@ -75,6 +75,7 @@ export default function RecordStartStopButton(
 
                 setTimestampsDone(0);
                 setIsRecording(false);
+                AKB.reset();
               },
             });
             setRecordStartTime(new Date());

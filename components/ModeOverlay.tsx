@@ -4,11 +4,13 @@ import { StyleSheet } from "react-native";
 import { Text as TextElements, Button, Overlay } from "react-native-elements";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 
-import { Text, View } from "../Themed";
-import { default as AKB } from "../../state_management/AnnotationKnowledgeBank";
+import { Text, View } from "./Themed";
+import { default as AKB } from "../state_management/AnnotationKnowledgeBank";
 
 export interface ModeOverlayProps {
-  style: any,
+  children?: JSX.Element;
+  visible: boolean;
+  setVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 enum OverlayScreenNumber {
@@ -22,7 +24,7 @@ export default function ModeOverlay(props: ModeOverlayProps) {
     [25, OverlayScreenNumber.show25m],
     [50, OverlayScreenNumber.show50m],
   ]);
-  const [visible, setVisible] = useState<boolean>(false);
+  const [visible, setVisible] = [props.visible, props.setVisible];
 
   const toggleOverlay = useCallback(() => {
     setVisible(!visible);
@@ -34,26 +36,14 @@ export default function ModeOverlay(props: ModeOverlayProps) {
 
   const [options, _] = useState<AKB.Modes>(AKB.getModes());
 
-  const setAnnotationMode = useCallback(
-    (poolLengthIndex: number, modeIndex: number) => {
-      AKB.setMode(poolLengthIndex, modeIndex);
-      setVisible(false);
-      setScreenNumber(OverlayScreenNumber.showPoolLength);
-      console.log(visible);
-    },
-    []
-  );
-
+  const setAnnotationMode = (pd: AKB.PoolDistance, modeIndex: number) => {
+    AKB.setMode(pd, modeIndex);
+    setVisible(false);
+    setScreenNumber(OverlayScreenNumber.showPoolLength);
+  };
   return (
     <>
-      <View
-        style={props.style}
-      >
-        <TouchableOpacity onPress={toggleOverlay}>
-          <Text>{AKB.getCurrentMode().name}</Text>
-        </TouchableOpacity>
-      </View>
-
+      {props.children}
       <Overlay
         isVisible={visible}
         onBackdropPress={toggleOverlay}
@@ -67,16 +57,18 @@ export default function ModeOverlay(props: ModeOverlayProps) {
               {screenNumber !== OverlayScreenNumber.showPoolLength &&
                 "Race distance"}
             </TextElements>
+
             {screenNumber === OverlayScreenNumber.showPoolLength &&
-              options.map((e, i) => {
+              Array.from(options.keys()).map((e, i) => {
+                const poolLength = AKB.poolDistanceToNumber(e);
                 return (
                   <Button
                     key={i}
                     containerStyle={styles.annotationOption}
-                    title={`${e.poolLength}m`}
+                    title={`${poolLength}m`}
                     onPress={() =>
                       setScreenNumber(
-                        poolDistanceToScreenNumber.get(e.poolLength) ??
+                        poolDistanceToScreenNumber.get(poolLength) ??
                           OverlayScreenNumber.showPoolLength
                       )
                     }
@@ -84,28 +76,24 @@ export default function ModeOverlay(props: ModeOverlayProps) {
                 );
               })}
             {screenNumber === OverlayScreenNumber.show25m &&
-              options[0].modes.map((e, i) => {
+              options.get(AKB.PoolDistance.D25m)!.map((e, i) => {
                 return (
                   <Button
                     key={i}
                     containerStyle={styles.annotationOption}
                     title={e.name}
-                    onPress={() => {
-                      setTimeout(()=>setAnnotationMode(0, i), 100)
-                    }}
+                    onPress={() => setAnnotationMode(AKB.PoolDistance.D25m, i)}
                   />
                 );
               })}
             {screenNumber === OverlayScreenNumber.show50m &&
-              options[1].modes.map((e, i) => {
+              options.get(AKB.PoolDistance.D50m)!.map((e, i) => {
                 return (
                   <Button
                     key={i}
                     containerStyle={styles.annotationOption}
                     title={e.name}
-                    onPress={() => {
-                      setTimeout(()=>setAnnotationMode(1, i), 100)
-                    }}
+                    onPress={() => setAnnotationMode(AKB.PoolDistance.D50m, i)}
                   />
                 );
               })}

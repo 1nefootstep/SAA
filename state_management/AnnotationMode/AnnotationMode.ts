@@ -5,6 +5,8 @@ export class AnnotationMode {
     this.name = n;
     this.checkpointNames = checkpointNames;
   }
+
+  public toString = () => this.name;
 }
 
 export interface NameDistance {

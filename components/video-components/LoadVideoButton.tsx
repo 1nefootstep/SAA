@@ -8,11 +8,12 @@ import { Video } from "expo-av";
 import { default as AKB } from "../../state_management/AnnotationKnowledgeBank";
 import { default as VKB } from "../../state_management/VideoKnowledgeBank";
 import { default as FileHandler } from "../../FileHandler/FileHandler";
+import { isNotNullNotUndefined } from "../Util";
 
 export interface LoadVideoProps {
   videoRef: RefObject<Video>;
   setIsNotLoaded: () => void;
-  handleWhenVKBDone: (b:boolean, s:string) => void;
+  handleWhenVKBDone: (b: boolean, s: string) => void;
 }
 
 type PickVideoResult =
@@ -58,7 +59,7 @@ export default function LoadVideoButton(props: LoadVideoProps) {
       if (r.isAvailable) {
         try {
           dataObject = JSON.parse(r.response);
-          console.log('successful parsing of file response');
+          console.log("successful parsing of file response");
         } catch (err) {
           console.log(`error: ${err}`);
 
@@ -68,46 +69,47 @@ export default function LoadVideoButton(props: LoadVideoProps) {
               avgFrameRate: 0,
               lastFrameNumber: 0,
             },
-            annotationInfo: {
-              name: "",
-              earlyCheckpoints: [],
-              annotations: [],
-              strokeCounts: [],
-            },
+            annotationInfo: AKB.defaultAKB(),
           };
         }
-        AKB.loadAnnotationInfo(dataObject['annotationInfo']);
+        AKB.loadAnnotationInfo(dataObject["annotationInfo"]);
         if ((dataObject.videoInformation.frameInformation.length ?? 0) > 0) {
-          VKB.loadCachedInformation(dataObject['videoInformation']);
+          console.log(`LoadVideoButton: load cached video information`);
+          VKB.loadCachedInformation(dataObject["videoInformation"]);
           props.handleWhenVKBDone(false, targetUri);
         } else {
-          VKB.loadVideoInformation(targetUri, () => props.handleWhenVKBDone(true, targetUri));
+          VKB.loadVideoInformation(targetUri, () =>
+            props.handleWhenVKBDone(true, targetUri)
+          );
         }
+      } else {
+        VKB.loadVideoInformation(targetUri, () =>
+          props.handleWhenVKBDone(true, targetUri)
+        );
       }
     });
   };
 
   const handleOnPress = () => {
     pickVideo()
-      .then((value) => {
+      .then(async (value) => {
         if (value.isSuccessful) {
-          let targetUri =
-            (value.result[0].fileCopyUri !== ""
-              ? value.result[0].fileCopyUri
-              : value.result[0].uri) ?? "";
-          if (
-            props.videoRef.current !== null &&
-            props.videoRef.current !== undefined
-          ) {
-            props.videoRef.current
-              .unloadAsync()
-              .then(() => {
-                props.videoRef
-                  .current!.loadAsync({ uri: targetUri })
-                  .catch((err) => console.log(`Error at loadAsync: ${err}`));
-                readData(targetUri);
-              })
-              .catch((err) => console.log(`Error at unloadAsync: ${err}`));
+          const result = value.result[0];
+          const targetUri =
+            (result.fileCopyUri !== "" ? result.fileCopyUri : result.uri) ?? "";
+          if (isNotNullNotUndefined(props.videoRef.current)) {
+            const video = props.videoRef.current!;
+            AKB.reset();
+            if ((await video.getStatusAsync()).isLoaded) {
+              video
+                .unloadAsync()
+                .catch((err) => console.log(`Error at unloadAsync: ${err}`));
+            }
+            video
+              .loadAsync({ uri: targetUri })
+              .catch((err) => console.log(`Error at loadAsync: ${err}`));
+
+            readData(targetUri);
           }
         }
       })

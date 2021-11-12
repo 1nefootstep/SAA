@@ -10,7 +10,7 @@ import RecordStartStopButton from "../components/video-recorder/RecordStartStopB
 import VideoRecorder from "../components/video-recorder/VideoRecorder";
 import FileHandler from "../FileHandler/FileHandler";
 import MenuButton from "../components/MenuButton";
-import ModeOverlay from "../components/video-recorder/ModeOverlay";
+import SelectMode from "../components/video-recorder/SelectMode";
 import TimestampButton from "../components/video-recorder/TimestampButton";
 
 async function cameraPermission(): Promise<boolean> {
@@ -83,7 +83,7 @@ export default function RecordScreen({ navigation }) {
             setSnackbarText={setSnackbarText}
           />
 
-          <ModeOverlay style={styles.modeButton} />
+          <SelectMode style={styles.modeButton} />
 
           <VideoRecorder cameraRef={cameraRef} />
           <Snackbar

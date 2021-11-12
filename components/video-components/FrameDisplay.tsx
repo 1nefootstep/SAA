@@ -8,8 +8,9 @@ export interface FrameDisplay {
 }
 
 export default function FrameDisplay(props: FrameDisplay) {
+  console.log(`FrameDisplay - ${props.durationFrameNumber}`);
   const durationToDisplay: string =
-    props.durationFrameNumber != 0 ? props.durationFrameNumber.toString() : "?";
+    props.durationFrameNumber !== 0 ? props.durationFrameNumber.toString() : "?";
   return (
     <Text>
       {props.positionFrameNumber} / {durationToDisplay}

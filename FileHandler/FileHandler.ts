@@ -92,18 +92,6 @@ module FileHandler {
       .catch((err) => console.log(err));
   }
 
-  // export function loadAnnotationInfo(
-  //   infoInJson: string,
-  //   callbackIfFailParse: (e: any) => void
-  // ) {
-  //   try {
-  //     annotationInfo = JSON.parse(infoInJson);
-  //     console.log(annotationInfo);
-  //   } catch (e: any) {
-  //     callbackIfFailParse(e);
-  //   }
-  // }
-
   export async function readText(filepath: string): Promise<TextResponse> {
     const isAvailable = await RNFS.exists(filepath);
     if (!isAvailable) {
@@ -121,12 +109,7 @@ module FileHandler {
     const filepath = `${getDestinationFolder()}/${basename}.txt`;
     console.log(filepath);
 
-    const isAvailable = await RNFS.exists(filepath);
-    if (!isAvailable) {
-      return { isAvailable: isAvailable };
-    }
-    const response = await RNFS.readFile(filepath);
-    return { isAvailable: isAvailable, response: response };
+    return readText(filepath);
   }
 
   export async function saveVideoToCameraRoll(filePath: string) {

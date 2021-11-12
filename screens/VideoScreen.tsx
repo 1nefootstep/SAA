@@ -21,8 +21,9 @@ import MenuButton from "../components/MenuButton";
 import SideMenu from "../components/video-side-menu/SideMenu";
 import TimerTool from "../components/video-side-menu/TimerTool";
 import FineControlBar from "../components/video-components/FineControlBar";
-import ModeOverlay from "../components/video-components/ModeOverlay";
 import FileHandler from "../FileHandler/FileHandler";
+import VideoSelectMode from "../components/video-components/VideoSelectMode";
+import { isNotNullNotUndefined } from "../components/Util";
 
 export default function VideoScreen({ navigation }) {
   const video = useRef<Video>(null);
@@ -56,9 +57,15 @@ export default function VideoScreen({ navigation }) {
     if (shouldCacheVideo) {
       FileHandler.saveVideoAndAnnotations(videoFilePath);
     }
-    if (video.current !== null) {
-      const status: AVPlaybackStatus = await video.current!.getStatusAsync();
+    if (isNotNullNotUndefined(video.current)) {
+      // const status: AVPlaybackStatus = await video.current!.getStatusAsync();
+      let status: AVPlaybackStatus = await video.current!.getStatusAsync();
+      if (status.isLoaded && status.durationMillis === 1) {
+        console.log('VideoScreen, handleWhenVKBDone - reloading');
+        status = await video.current!.getStatusAsync();
+      }
       if (status.isLoaded) {
+        console.log(`${JSON.stringify(status)}`);
         setDurationFrameNumber(
           VKB.timeToFrameNumber(status?.durationMillis ?? 0)
         );
@@ -198,7 +205,7 @@ export default function VideoScreen({ navigation }) {
               setDurationFrameNumber(0);
             }}
           />
-          <ModeOverlay />
+          <VideoSelectMode isLoaded={isLoaded}/>
         </View>
         <Snackbar
           visible={snackbarVisible}
