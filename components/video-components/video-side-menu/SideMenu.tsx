@@ -4,19 +4,21 @@ import { TouchableOpacity, StyleSheet } from "react-native";
 import { Video } from "expo-av";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
-import { View } from "../Themed";
+import { View } from "../../Themed";
 import CheckpointButton from "./CheckpointButton";
-import { default as AKB } from "../../state_management/AnnotationKnowledgeBank";
+import { default as AKB } from "../../../state_management/AnnotationKnowledgeBank";
 import StrokeCounter from "./StrokeCounter";
 import StepButtons from "./StepButtons";
-import ToggleTrack from "./ToggleTrack";
 import UndoButton from "./UndoButton";
-import { NameDistance } from "../../state_management/AnnotationMode/AnnotationMode";
+import { NameDistance } from "../../../state_management/AnnotationMode/AnnotationMode";
+import SelectAnnotation from "./SelectAnnotation";
 
 export interface SideMenuProps {
   isLoaded: boolean;
   currentPositionMillis: number;
   annotation: NameDistance;
+  currentDistance: number;
+  setCurrentDistance: React.Dispatch<React.SetStateAction<number>>;
   setSnackbarVisible: (b: boolean) => void;
   toggleIsLineToolActive: () => void;
   toggleIsTimerToolActive: () => void;
@@ -27,8 +29,6 @@ export interface SideMenuProps {
 }
 
 export default function MenuButton(props: SideMenuProps) {
-  const [isRealCheckpoint, setIsRealCheckpoint] = useState<boolean>(false);
-
   const addTimer = () => {
     // ensure there are no duplicate timers at same currentPositionMillis
     if (
@@ -45,10 +45,15 @@ export default function MenuButton(props: SideMenuProps) {
         annotationDescription={props.annotation?.name ?? "Checkpoint"}
         distance={props.annotation?.distanceMeter ?? 0}
         isLoaded={props.isLoaded}
-        isRealCheckpoint={isRealCheckpoint}
         currentPositionMillis={props.currentPositionMillis}
         setTrackTimestamp={props.setTrackTimestamp}
         setSnackbarVisible={props.setSnackbarVisible}
+      />
+      <SelectAnnotation
+        isLoaded={props.isLoaded}
+        currentDistance={props.currentDistance}
+        setCurrentDistance={props.setCurrentDistance}
+        setTrackTimestamp={props.setTrackTimestamp}
       />
       <TouchableOpacity
         onPress={props.toggleIsLineToolActive}
@@ -59,12 +64,6 @@ export default function MenuButton(props: SideMenuProps) {
       <TouchableOpacity onPress={addTimer} style={styles.button}>
         <MaterialCommunityIcons name="clock-digital" size={30} color="white" />
       </TouchableOpacity>
-      <ToggleTrack
-        isLoaded={props.isLoaded}
-        isRealCheckpoint={isRealCheckpoint}
-        setIsRealCheckpoint={setIsRealCheckpoint}
-        setTrackTimestamp={props.setTrackTimestamp}
-      />
       <UndoButton
         isLoaded={props.isLoaded}
         setTrackTimestamp={props.setTrackTimestamp}
@@ -72,7 +71,6 @@ export default function MenuButton(props: SideMenuProps) {
 
       <StepButtons
         isLoaded={props.isLoaded}
-        isRealCheckpoint={isRealCheckpoint}
         currentPositionMillis={props.currentPositionMillis}
         videoRef={props.videoRef}
       />

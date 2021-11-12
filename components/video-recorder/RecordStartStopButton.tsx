@@ -68,7 +68,7 @@ export default function RecordStartStopButton(
                 console.log("stop recording");
                 console.log(videoFile.path);
                 FileHandler.saveVideoAndAnnotations(videoFile.path);
-                AKB.clearEarlyCheckpoints();
+                AKB.clearAnnotations();
                 saveVideo(videoFile.path)
                   .then(() => console.log("saved successfully."))
                   .catch((err) => console.log(err));

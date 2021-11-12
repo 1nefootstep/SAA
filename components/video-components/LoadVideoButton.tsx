@@ -74,7 +74,6 @@ export default function LoadVideoButton(props: LoadVideoProps) {
         }
         AKB.loadAnnotationInfo(dataObject["annotationInfo"]);
         if ((dataObject.videoInformation.frameInformation.length ?? 0) > 0) {
-          console.log(`LoadVideoButton: load cached video information`);
           VKB.loadCachedInformation(dataObject["videoInformation"]);
           props.handleWhenVKBDone(false, targetUri);
         } else {
@@ -100,11 +99,13 @@ export default function LoadVideoButton(props: LoadVideoProps) {
           if (isNotNullNotUndefined(props.videoRef.current)) {
             const video = props.videoRef.current!;
             AKB.reset();
+            // unload video if already loaded
             if ((await video.getStatusAsync()).isLoaded) {
               video
                 .unloadAsync()
                 .catch((err) => console.log(`Error at unloadAsync: ${err}`));
             }
+            // start loading video
             video
               .loadAsync({ uri: targetUri })
               .catch((err) => console.log(`Error at loadAsync: ${err}`));

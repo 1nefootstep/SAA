@@ -16,13 +16,13 @@ import { default as VKB } from "../state_management/VideoKnowledgeBank";
 import { default as AKB } from "../state_management/AnnotationKnowledgeBank";
 import { formatTimeFromPosition } from "../components/TimeFormattingUtil";
 
-import LineTool from "../components/video-side-menu/LineTool";
+import LineTool from "../components/video-components/video-side-menu/LineTool";
 import MenuButton from "../components/MenuButton";
-import SideMenu from "../components/video-side-menu/SideMenu";
-import TimerTool from "../components/video-side-menu/TimerTool";
+import SideMenu from "../components/video-components/video-side-menu/SideMenu";
+import TimerTool from "../components/video-components/video-side-menu/TimerTool";
 import FineControlBar from "../components/video-components/FineControlBar";
 import FileHandler from "../FileHandler/FileHandler";
-import VideoSelectMode from "../components/video-components/VideoSelectMode";
+import { MemoVideoSelectMode } from "../components/video-components/VideoSelectMode";
 import { isNotNullNotUndefined } from "../components/Util";
 
 export default function VideoScreen({ navigation }) {
@@ -47,31 +47,29 @@ export default function VideoScreen({ navigation }) {
 
   const [timers, setTimers] = useState<Array<number>>([]);
 
-  let annotation = AKB.getCurrentAnnotation(currentPositionMillis);
+  const [currentDistance, setCurrentDistance] = useState<number>(0);
+  const annotation = AKB.getCurrentAnnotation(currentPositionMillis); //delete this
 
   const setTrackTimestampCorrected = (a: Array<number>) => {
     setTrackTimestamp([-1, ...a]);
   };
 
-  const handleWhenVKBDone = async (shouldCacheVideo: boolean, videoFilePath: string) => {
+  const handleWhenVKBDone = async (
+    shouldCacheVideo: boolean,
+    videoFilePath: string
+  ) => {
     if (shouldCacheVideo) {
       FileHandler.saveVideoAndAnnotations(videoFilePath);
     }
     if (isNotNullNotUndefined(video.current)) {
-      // const status: AVPlaybackStatus = await video.current!.getStatusAsync();
-      let status: AVPlaybackStatus = await video.current!.getStatusAsync();
-      if (status.isLoaded && status.durationMillis === 1) {
-        console.log('VideoScreen, handleWhenVKBDone - reloading');
-        status = await video.current!.getStatusAsync();
-      }
+      const status: AVPlaybackStatus = await video.current!.getStatusAsync();
       if (status.isLoaded) {
-        console.log(`${JSON.stringify(status)}`);
         setDurationFrameNumber(
           VKB.timeToFrameNumber(status?.durationMillis ?? 0)
         );
         setFrameRate(VKB.getAvgFrameRate());
         setIsLoaded(true);
-        setTrackTimestampCorrected(AKB.getEarlyCheckpointsTimestampArray());
+        setTrackTimestampCorrected(AKB.getAnnotationsTimestampArray());
       } else {
         console.log("VKB loaded but video did not load");
       }
@@ -140,6 +138,8 @@ export default function VideoScreen({ navigation }) {
           isLoaded={isLoaded}
           setSnackbarVisible={setSnackbarVisible}
           currentPositionMillis={currentPositionMillis}
+          currentDistance={currentDistance}
+          setCurrentDistance={setCurrentDistance}
           annotation={annotation}
           toggleIsLineToolActive={() => {
             setIsLineToolActive(!isLineToolActive);
@@ -205,14 +205,17 @@ export default function VideoScreen({ navigation }) {
               setDurationFrameNumber(0);
             }}
           />
-          <VideoSelectMode isLoaded={isLoaded}/>
+          <MemoVideoSelectMode isLoaded={isLoaded} />
         </View>
         <Snackbar
           visible={snackbarVisible}
           onDismiss={() => setSnackbarVisible(false)}
           duration={300}
         >
-          {annotation.name}: {formatTimeFromPosition(currentPositionMillis)}
+          {AKB.getCurrentMode().checkpointNames.find(
+            (e) => e.distanceMeter === currentDistance
+          )?.name ?? "0m"}
+          : {formatTimeFromPosition(currentPositionMillis)}
         </Snackbar>
       </View>
     </View>
@@ -234,8 +237,6 @@ const styles = StyleSheet.create({
     margin: 20,
   },
   mainRow: {
-    // height: "65%",
-    // width: "100%",
     flex: 1,
     flexDirection: "row",
   },
@@ -243,11 +244,15 @@ const styles = StyleSheet.create({
     flex: 9,
     justifyContent: "center",
     flexDirection: "row",
+    borderWidth: 1,
+    borderColor: "yellow",
   },
   video: {
     // width: "20%",
     height: "100%",
     aspectRatio: 3 / 2,
+    borderWidth: 1,
+    borderColor: "red",
     // backgroundColor: 'blue',
   },
   controlRow: {

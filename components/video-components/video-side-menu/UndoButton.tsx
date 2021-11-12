@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { TouchableOpacity } from "react-native";
 
-import { Text } from "../Themed";
+import { Text } from "../../Themed";
 
-import { default as AKB } from "../../state_management/AnnotationKnowledgeBank";
+import { default as AKB } from "../../../state_management/AnnotationKnowledgeBank";
 
 export interface UndoButtonProps {
   isLoaded: boolean;

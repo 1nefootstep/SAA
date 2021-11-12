@@ -31,11 +31,10 @@ export default function TimestampButton(props: TimestampButtonInterface) {
       onPress={() => {
         if (props.isRecording && props.timestampsDone < checkpoints.length) {
           props.setMillisSnackbar(Date.now() - props.recordStartTime.valueOf());
-          AKB.addEarlyCheckpoint({
+          AKB.addAnnotation({
             timestamp: props.millisSnackbar,
             distance: checkpoints[currIndex].distanceMeter,
-          });
-
+          })
           props.setSnackbarText(
             `Set ${checkpoints[currIndex].name} at ${formatTimeFromPosition(
               props.millisSnackbar

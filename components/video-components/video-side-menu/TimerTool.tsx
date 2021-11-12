@@ -12,7 +12,7 @@ import {
   State,
 } from "react-native-gesture-handler";
 
-import { formatTimeFromPosition } from "../TimeFormattingUtil";
+import { formatTimeFromPosition } from "../../TimeFormattingUtil";
 
 export interface TimerToolProps {
   isActive: boolean;
@@ -26,7 +26,6 @@ export default function TimeDisplay(props: TimerToolProps) {
   const difference = props.currentPositionMillis - props.startPositionMillis;
   const absoluteDifference = Math.abs(difference);
   const formatted = formatTimeFromPosition(absoluteDifference);
-  console.log(formatted);
   let display: string;
   if (difference >= 0) {
     display = "+" + formatted;

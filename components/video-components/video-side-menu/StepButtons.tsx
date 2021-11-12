@@ -4,46 +4,27 @@ import { View } from "react-native";
 import { Video } from "expo-av";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-import { default as AKB } from "../../state_management/AnnotationKnowledgeBank";
+import { default as AKB } from "../../../state_management/AnnotationKnowledgeBank";
 
 export interface StepButtonProps {
   isLoaded: boolean;
-  isRealCheckpoint: boolean;
   currentPositionMillis: number;
   videoRef: RefObject<Video>;
 }
 
 export default function StepButtons(props: StepButtonProps) {
-  const goToPrevEarlyCheckpoint = () => {
-    if (props.isLoaded) {
-      const response = AKB.prevEarlyCheckpoint(props.currentPositionMillis);
-      if (response.found) {
-        props.videoRef.current!.setPositionAsync(response.time, {
-          toleranceMillisBefore: 0,
-          toleranceMillisAfter: 0,
-        });
-      }
-    }
-  };
-  const goToNextEarlyCheckpoint = () => {
-    if (props.isLoaded) {
-      const response = AKB.nextEarlyCheckpoint(props.currentPositionMillis);
-      if (response.found) {
-        props.videoRef.current!.setPositionAsync(response.time, {
-          toleranceMillisBefore: 0,
-          toleranceMillisAfter: 0,
-        });
-      }
-    }
-  };
   const goToPrevAnnotation = () => {
     if (props.isLoaded) {
+      console.log("StepButtons - prev pressed");
       const response = AKB.prevAnnotation(props.currentPositionMillis);
       if (response.found) {
+        console.log("StepButtons - resp found");
         props.videoRef.current!.setPositionAsync(response.time, {
           toleranceMillisBefore: 0,
           toleranceMillisAfter: 0,
         });
+      } else {
+        console.log("StepButtons - resp not found");
       }
     }
   };
@@ -62,28 +43,16 @@ export default function StepButtons(props: StepButtonProps) {
   const sizeOfIcon = 30;
 
   return (
-    <View style={{flex: 1, marginVertical: 1}}>
-      <View style={{ flex: 1, flexDirection: "row",}}>
+    <View style={{ flex: 1, marginVertical: 1 }}>
+      <View style={{ flex: 1, flexDirection: "row" }}>
         <MaterialCommunityIcons
-          onPress={() => {
-            if (props.isRealCheckpoint) {
-              goToPrevAnnotation();
-            } else {
-              goToPrevEarlyCheckpoint();
-            }
-          }}
+          onPress={() => goToPrevAnnotation()}
           name="step-backward"
           size={sizeOfIcon}
           color="blue"
         />
         <MaterialCommunityIcons
-          onPress={() => {
-            if (props.isRealCheckpoint) {
-              goToNextAnnotation();
-            } else {
-              goToNextEarlyCheckpoint();
-            }
-          }}
+          onPress={() => goToNextAnnotation()}
           name="step-forward"
           size={sizeOfIcon}
           color="blue"

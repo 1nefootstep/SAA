@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, RefObject } from "react";
+import React, { useState } from "react";
 
 import { Video } from "expo-av";
 
@@ -9,14 +9,16 @@ export interface VideoSelectModeProps {
   isLoaded: boolean;
 }
 
-export default function VideoSelectMode(props: VideoSelectModeProps) {
+export const MemoVideoSelectMode = React.memo(VideoSelectMode);
+
+export function VideoSelectMode(props: VideoSelectModeProps) {
   const [visible, setVisible] = useState<boolean>(true);
   const isUnassigned = () =>
     AKB.getAnnotationInfo().poolDistance === AKB.PoolDistance.Unassigned;
 
   const setVisibleToTrue = () => {
     if (!visible) {
-        setVisible(true);
+      setVisible(true);
     }
   };
   if (props.isLoaded && isUnassigned()) {
