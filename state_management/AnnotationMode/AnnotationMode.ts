@@ -16,6 +16,27 @@ export class AnnotationMode {
     return this.checkpointNames.findIndex(e => e.distanceMeter === distance);
   }
 
+  /**
+   * Returns the next distance from the race mode.
+   * If there isn't any other distance after, returns the last
+   * distance in the race mode. If there is
+   * nothing in the race mode, returns -1.
+   * @param distance 
+   * @returns the next distance
+  */
+  public nextDistance = (distance:number):number => {
+    const len = this.checkpointNames.length;
+    if (len === 0) {
+      return -1;
+    }
+    const index = this.checkpointNames.findIndex(e=>e.distanceMeter > distance);
+    // can't find so return the last distance
+    if (index === -1) {
+      return this.checkpointNames[len - 1].distanceMeter;
+    }
+    return this.checkpointNames[index].distanceMeter;
+  }
+
   public toString = () => this.name;
 }
 

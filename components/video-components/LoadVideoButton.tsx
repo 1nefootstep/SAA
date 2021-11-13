@@ -5,7 +5,7 @@ import { Text } from "../Themed";
 import * as DocumentPicker from "react-native-document-picker";
 import { Video } from "expo-av";
 
-import { default as AKB } from "../../state_management/AnnotationKnowledgeBank";
+import { default as AKB } from "../../state_management/AKB/AnnotationKnowledgeBank";
 import { default as VKB } from "../../state_management/VideoKnowledgeBank";
 import { default as FileHandler } from "../../FileHandler/FileHandler";
 import { isNotNullNotUndefined } from "../Util";

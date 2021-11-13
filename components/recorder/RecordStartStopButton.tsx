@@ -9,8 +9,8 @@ import {
 } from "react-native-vision-camera";
 
 import FileHandler from "../../FileHandler/FileHandler";
-import { Text, View } from "../../components/Themed";
-import { default as AKB } from "../../state_management/AnnotationKnowledgeBank";
+import { Text, View } from "../Themed";
+import { default as AKB } from "../../state_management/AKB/AnnotationKnowledgeBank";
 import { Platform } from "expo-modules-core";
 import { isNullOrUndefined } from "../Util";
 

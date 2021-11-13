@@ -5,7 +5,7 @@ import { Text as TextElements, Button, Overlay } from "react-native-elements";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 
 import { Text, View } from "./Themed";
-import { default as AKB } from "../state_management/AnnotationKnowledgeBank";
+import { default as AKB } from "../state_management/AKB/AnnotationKnowledgeBank";
 
 export interface ModeOverlayProps {
   children?: JSX.Element;
@@ -28,6 +28,7 @@ export default function ModeOverlay(props: ModeOverlayProps) {
 
   const toggleOverlay = useCallback(() => {
     setVisible(!visible);
+    setScreenNumber(OverlayScreenNumber.showPoolLength);
   }, [visible]);
 
   const [screenNumber, setScreenNumber] = useState<OverlayScreenNumber>(

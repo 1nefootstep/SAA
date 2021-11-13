@@ -4,7 +4,7 @@ import { View } from "react-native";
 import { Video } from "expo-av";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-import { default as AKB } from "../../../state_management/AnnotationKnowledgeBank";
+import { default as AKB } from "../../../state_management/AKB/AnnotationKnowledgeBank";
 
 export interface StepButtonProps {
   isLoaded: boolean;

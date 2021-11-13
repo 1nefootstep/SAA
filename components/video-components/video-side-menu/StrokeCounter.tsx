@@ -5,7 +5,7 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import { AntDesign } from "@expo/vector-icons";
 
 import { Text } from "../../Themed";
-import { default as AKB } from "../../../state_management/AnnotationKnowledgeBank";
+import { default as AKB } from "../../../state_management/AKB/AnnotationKnowledgeBank";
 import { is } from "@babel/types";
 
 export interface StrokeCounterProps {

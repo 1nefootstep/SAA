@@ -1,34 +1,35 @@
-import { binarySearch, isNotNullNotUndefined } from "../components/Util";
-import { AnnotationMode, NameDistance } from "./AnnotationMode/AnnotationMode";
-import * as Pool50m from "./AnnotationMode/Pool50m";
-import * as Pool25m from "./AnnotationMode/Pool25m";
+import { binarySearch, isNotNullNotUndefined } from "../../components/Util";
+import { AnnotationMode, NameDistance } from "../AnnotationMode/AnnotationMode";
+import * as Pool50m from "../AnnotationMode/Pool50m";
+import * as Pool25m from "../AnnotationMode/Pool25m";
+import { Annotations, Distance, Timestamp } from "./Annotations";
 
 module AnnotationKnowledgeBank {
   export interface AnnotationInformation {
     name: string;
     poolDistance: PoolDistance;
     modeIndex: number;
-    annotations: CheckpointAnnotation[];
+    annotations: Annotations;
     strokeCounts: StrokeCount[];
   }
 
   export type StrokeCount =
     | {
         hasEndTime: true;
-        startTime: number;
-        endTime: number;
+        startTime: Timestamp;
+        endTime: Timestamp;
         strokeCount: number;
       }
     | {
         hasEndTime: false;
-        startTime: number;
+        startTime: Timestamp;
         strokeCount: number;
       };
 
-  export interface CheckpointAnnotation {
-    timestamp: number;
-    distance: number;
-  }
+  // export interface Timestamp {
+  //   timestamp: number;
+  //   // distance: number;
+  // }
 
   export type CheckpointResponse =
     | {
@@ -36,7 +37,7 @@ module AnnotationKnowledgeBank {
       }
     | {
         found: true;
-        time: number;
+        time: Timestamp;
       };
 
   export enum PoolDistance {
@@ -116,26 +117,31 @@ module AnnotationKnowledgeBank {
       name: "",
       poolDistance: PoolDistance.Unassigned,
       modeIndex: -1,
-      annotations: [],
+      annotations: new Annotations([]),
       strokeCounts: [],
     };
   }
 
   let annotationInfo = defaultAKB();
 
-  let undoStack: Array<CheckpointAnnotation> = [];
+  // let undoStack: Array<CheckpointAnnotation> = [];
 
   export function reset() {
     annotationInfo = defaultAKB();
   }
 
-  export function undoAddedAnnotation(): void {
-    const ann: CheckpointAnnotation | undefined = undoStack.pop();
-    if (isNotNullNotUndefined(ann)) {
-      annotationInfo.annotations = annotationInfo.annotations.filter(
-        (e) => e != ann
-      );
-    }
+  // export function undoAddedAnnotation(): void {
+  //   const ann: CheckpointAnnotation | undefined = undoStack.pop();
+  //   if (isNotNullNotUndefined(ann)) {
+  //     annotationInfo.annotations = annotationInfo.annotations.filter(
+  //       (e) => e != ann
+  //     );
+  //   }
+  // }
+
+  export function deleteAnnotation(distance: Distance) {
+    const map = annotationInfo.annotations.annotations;
+    map.delete(distance);
   }
 
   /**
@@ -170,35 +176,35 @@ module AnnotationKnowledgeBank {
     );
   }
 
-  export function getCurrentAnnotation(currentPosition: number): NameDistance {
-    let foundIndex = -1;
-    const currentMode = getCurrentMode();
-    for (let i = 0; i < annotationInfo.annotations.length; i++) {
-      const currAnnotation = annotationInfo.annotations[i];
-      const isCurrPosAfter = currentPosition >= currAnnotation.timestamp;
+  // export function getCurrentAnnotation(currentPosition: number): NameDistance {
+  //   let foundIndex = -1;
+  //   const currentMode = getCurrentMode();
+  //   for (let i = 0; i < annotationInfo.annotations.length; i++) {
+  //     const currAnnotation = annotationInfo.annotations[i];
+  //     const isCurrPosAfter = currentPosition >= currAnnotation.timestamp;
 
-      if (isCurrPosAfter) {
-        for (let j = 0; j < currentMode.checkpointNames.length; j++) {
-          if (
-            currAnnotation.distance ===
-            currentMode.checkpointNames[j].distanceMeter
-          ) {
-            foundIndex = j;
-            break;
-          }
-        }
-      }
-    }
-    if (foundIndex === -1) {
-      return currentMode.checkpointNames[0];
-    }
-    if (foundIndex + 1 < currentMode.checkpointNames.length) {
-      return currentMode.checkpointNames[foundIndex + 1];
-    }
-    return { name: "Checkpoint", distanceMeter: 0 };
-  }
+  //     if (isCurrPosAfter) {
+  //       for (let j = 0; j < currentMode.checkpointNames.length; j++) {
+  //         if (
+  //           currAnnotation.distance ===
+  //           currentMode.checkpointNames[j].distanceMeter
+  //         ) {
+  //           foundIndex = j;
+  //           break;
+  //         }
+  //       }
+  //     }
+  //   }
+  //   if (foundIndex === -1) {
+  //     return currentMode.checkpointNames[0];
+  //   }
+  //   if (foundIndex + 1 < currentMode.checkpointNames.length) {
+  //     return currentMode.checkpointNames[foundIndex + 1];
+  //   }
+  //   return { name: "Checkpoint", distanceMeter: 0 };
+  // }
 
-  export function addStrokeCount(startTime: number): number {
+  export function addStrokeCount(startTime: Timestamp): number {
     annotationInfo.strokeCounts.push({
       hasEndTime: false,
       startTime: startTime,
@@ -267,79 +273,75 @@ module AnnotationKnowledgeBank {
     return annotationInfo;
   }
 
-  export function getAnnotations(): CheckpointAnnotation[] {
+  export function getAnnotations(): Annotations {
     return annotationInfo.annotations;
   }
 
-  export function nextAnnotation(positionInMillis: number): CheckpointResponse {
-    const nextPosition = binarySearch(
-      annotationInfo.annotations,
-      (cp: CheckpointAnnotation) => positionInMillis < cp.timestamp
-    );
+  function getAnnotationWithSearch(
+    positionInMillis: number,
+    fn: (sortedTimestamps: Array<Timestamp>, positionInMillis: number) => number
+  ): CheckpointResponse {
+    const timestamps = getAnnotationsTimestampArray();
 
-    if (nextPosition != annotationInfo.annotations.length) {
+    const index = fn(timestamps, positionInMillis);
+
+    if (index < timestamps.length && index >= 0) {
       return {
         found: true,
-        time: annotationInfo.annotations[nextPosition].timestamp,
+        time: timestamps[index],
       };
     }
     return { found: false };
+  }
+
+  export function nextAnnotation(positionInMillis: number): CheckpointResponse {
+    return getAnnotationWithSearch(
+      positionInMillis,
+      (timestamps, positionInMillis) =>
+        binarySearch(timestamps, (t) => positionInMillis < t)
+    );
   }
 
   export function prevAnnotation(positionInMillis: number): CheckpointResponse {
-    const prevPosition =
-      binarySearch(
-        annotationInfo.annotations,
-        (cp: CheckpointAnnotation) => positionInMillis < cp.timestamp
-      ) - 2;
-
-    if (prevPosition >= 0) {
-      return {
-        found: true,
-        time: annotationInfo.annotations[prevPosition].timestamp,
-      };
-    }
-    return { found: false };
+    return getAnnotationWithSearch(
+      positionInMillis,
+      (timestamps, positionInMillis) =>
+        binarySearch(timestamps, (t) => positionInMillis < t) - 2
+    );
   }
 
   export function getAnnotationsTimestampArray(): Array<number> {
-    return annotationInfo.annotations.map((ann) => ann.timestamp);
+    try {
+      return Array.from(annotationInfo.annotations.annotations.values()).sort(
+        (a, b) => a - b
+      );
+    } catch (err) {
+      console.log(`AKB, getAnnotationsTimestampArray err: ${err}`);
+      return [];
+    }
   }
 
-  export function addAnnotation(annotation: CheckpointAnnotation) {
-    console.log(`Checkpointing with: ${JSON.stringify(annotation)}`);
-    annotationInfo.annotations.push(annotation);
-    undoStack.push(annotation);
+  export function addAnnotation(distTimeObject: {distance: Distance, timestamp: Timestamp}) {
+    console.log(`Annotated ${distTimeObject.distance}m at ${(distTimeObject.timestamp / 1000).toFixed(2)}s`);
+    annotationInfo.annotations.annotations.set(distTimeObject.distance, distTimeObject.timestamp);
   }
 
   export function deleteAnnotationByDistance(distance: number) {
-    // -1 indicates couldn't find
-    const indexToDelete = annotationInfo["annotations"].findIndex(
-      (e: CheckpointAnnotation) => e.distance === distance
-    );
-    if (indexToDelete !== -1) {
-      annotationInfo.annotations.splice(indexToDelete, 1);
-    }
-  }
-
-  export function deleteAnnotationByIndex(index: number) {
-    if (
-      Number.isInteger(index) &&
-      index >= 0 &&
-      index < annotationInfo.annotations.length
-    ) {
-      annotationInfo.annotations.splice(index, 1);
-    }
+    annotationInfo.annotations.annotations.delete(distance);
   }
 
   export function clearAnnotations() {
-    annotationInfo.annotations.splice(0, annotationInfo.annotations.length);
+    annotationInfo.annotations.annotations.clear();
   }
 
-  export function loadAnnotationInfo(a: AnnotationInformation) {
-    console.log(`loading...`);
-    console.log(a);
-    annotationInfo = a;
+  export function loadAnnotationInfo(a: any) {
+    console.log(`AKB - loading...`);
+    console.log(`AKB - ${a}`);
+    annotationInfo.name = a.name;
+    annotationInfo.poolDistance = a.poolDistance;
+    annotationInfo.modeIndex = a.modeIndex;
+    annotationInfo.annotations = new Annotations(a.annotations);
+    annotationInfo.strokeCounts = a.strokeCounts;
   }
 
   export type DataAndTimeRange =
@@ -374,15 +376,17 @@ module AnnotationKnowledgeBank {
       });
   }
 
-  function getDistanceTimeMap(): Array<{ distance: number; time: number }> {
-    const anns = annotationInfo.annotations;
-    return anns.map((e) => {
-      return { distance: e.distance, time: e.timestamp };
-    });
+  function getDistanceTimeArray(): Array<{ distance: number; time: number }> {
+    const annMap = annotationInfo.annotations.annotations;
+    return Array.from(annMap.entries())
+      .map((e) => {
+        return { distance: e[0], time: e[1] };
+      })
+      .sort((a, b) => a.distance - b.distance);
   }
 
   function computeAverageVelocities(): Array<DataAndTimeRange> {
-    const anns = annotationInfo.annotations;
+    const anns = getDistanceTimeArray();
     let prevTimestamp = -1;
     let prevDistance = -1;
     let isFirst = true;
@@ -390,10 +394,10 @@ module AnnotationKnowledgeBank {
     for (let i = 0; i < anns.length; i++) {
       if (isFirst) {
         isFirst = false;
-        prevTimestamp = anns[i].timestamp;
+        prevTimestamp = anns[i].time;
         prevDistance = anns[i].distance;
       } else {
-        const currTimestamp = anns[i].timestamp;
+        const currTimestamp = anns[i].time;
         const currDistance = anns[i].distance;
         const timeTaken = (currTimestamp - prevTimestamp) / 1000; // convert to seconds
         const distance = currDistance - prevDistance;
@@ -443,7 +447,7 @@ module AnnotationKnowledgeBank {
         return { hasData: false, startTime: e.startTime, endTime: e.endTime };
       });
 
-    const distanceTimeMap = getDistanceTimeMap();
+    const distanceTimeMap = getDistanceTimeArray();
     return {
       averageVelocities: averageVelocitiesWithTimestamp,
       strokeFrequencies: strokeFrequenciesWithTimestamp,

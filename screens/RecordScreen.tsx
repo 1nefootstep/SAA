@@ -6,12 +6,12 @@ import { Camera } from "react-native-vision-camera";
 
 import { Text, View } from "../components/Themed";
 
-import RecordStartStopButton from "../components/video-recorder/RecordStartStopButton";
-import VideoRecorder from "../components/video-recorder/VideoRecorder";
+import RecordStartStopButton from "../components/recorder/RecordStartStopButton";
+import VideoRecorder from "../components/recorder/VideoRecorder";
 import FileHandler from "../FileHandler/FileHandler";
 import MenuButton from "../components/MenuButton";
-import SelectMode from "../components/video-recorder/SelectMode";
-import TimestampButton from "../components/video-recorder/TimestampButton";
+import SelectMode from "../components/recorder/SelectMode";
+import TimestampButton from "../components/recorder/TimestampButton";
 
 async function cameraPermission(): Promise<boolean> {
   if (Platform.OS === "android") {
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   },
   recordButton: {
     position: "absolute",
-    top: "50%",
+    top: "30%",
     right: "3%",
     backgroundColor: "transparent",
   },

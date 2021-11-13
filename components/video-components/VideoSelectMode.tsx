@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Video } from "expo-av";
 
 import ModeOverlay from "../ModeOverlay";
-import { default as AKB } from "../../state_management/AnnotationKnowledgeBank";
+import { default as AKB } from "../../state_management/AKB/AnnotationKnowledgeBank";
 
 export interface VideoSelectModeProps {
   isLoaded: boolean;

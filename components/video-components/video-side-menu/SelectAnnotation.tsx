@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import { Video } from "expo-av";
 
-import { default as AKB } from "../../../state_management/AnnotationKnowledgeBank";
+import { default as AKB } from "../../../state_management/AKB/AnnotationKnowledgeBank";
 import { NameDistance } from "../../../state_management/AnnotationMode/AnnotationMode";
 import { isNotNullNotUndefined } from "../../Util";
 
@@ -73,10 +73,10 @@ export default function SelectAnnotation(props: SelectAnnotationProps) {
       if (index === -1) {
         return false;
       }
-      const a = AKB.getAnnotations()[index];
+      const timestamp = AKB.getAnnotations().annotations.get(distance);
       const video = props.videoRef?.current;
-      if (isNotNullNotUndefined(a) && isNotNullNotUndefined(video)) {
-        await video!.setPositionAsync(a!.timestamp, {
+      if (isNotNullNotUndefined(timestamp) && isNotNullNotUndefined(video)) {
+        await video!.setPositionAsync(timestamp!, {
           toleranceMillisAfter: 0,
           toleranceMillisBefore: 0,
         });

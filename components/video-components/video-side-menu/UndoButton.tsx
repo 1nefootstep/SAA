@@ -3,7 +3,7 @@ import { TouchableOpacity } from "react-native";
 
 import { Text } from "../../Themed";
 
-import { default as AKB } from "../../../state_management/AnnotationKnowledgeBank";
+import { default as AKB } from "../../../state_management/AKB/AnnotationKnowledgeBank";
 
 export interface UndoButtonProps {
   isLoaded: boolean;

@@ -3,8 +3,8 @@ import { TouchableOpacity } from "react-native";
 
 import { AntDesign } from "@expo/vector-icons";
 
-import { Text, View } from "../../components/Themed";
-import { default as AKB } from "../../state_management/AnnotationKnowledgeBank";
+import { Text, View } from "../Themed";
+import { default as AKB } from "../../state_management/AKB/AnnotationKnowledgeBank";
 import { formatTimeFromPosition } from "../TimeFormattingUtil";
 
 export interface TimestampButtonInterface {

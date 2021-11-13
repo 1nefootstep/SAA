@@ -6,7 +6,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { View } from "../../Themed";
 import CheckpointButton from "./CheckpointButton";
-import { default as AKB } from "../../../state_management/AnnotationKnowledgeBank";
+import { default as AKB } from "../../../state_management/AKB/AnnotationKnowledgeBank";
 import StrokeCounter from "./StrokeCounter";
 import StepButtons from "./StepButtons";
 import UndoButton from "./UndoButton";
@@ -16,7 +16,6 @@ import SelectAnnotation from "./SelectAnnotation";
 export interface SideMenuProps {
   isLoaded: boolean;
   currentPositionMillis: number;
-  annotation: NameDistance;
   currentDistance: number;
   setCurrentDistance: React.Dispatch<React.SetStateAction<number>>;
   setSnackbarVisible: (b: boolean) => void;
@@ -42,12 +41,13 @@ export default function MenuButton(props: SideMenuProps) {
   return (
     <View style={styles.sideMenu}>
       <CheckpointButton
-        annotationDescription={props.annotation?.name ?? "Checkpoint"}
-        distance={props.annotation?.distanceMeter ?? 0}
+        distance={props.currentDistance}
+        setCurrentDistance={props.setCurrentDistance}
         isLoaded={props.isLoaded}
         currentPositionMillis={props.currentPositionMillis}
         setTrackTimestamp={props.setTrackTimestamp}
         setSnackbarVisible={props.setSnackbarVisible}
+        videoRef={props.videoRef}
       />
       <SelectAnnotation
         isLoaded={props.isLoaded}
@@ -65,10 +65,6 @@ export default function MenuButton(props: SideMenuProps) {
       <TouchableOpacity onPress={addTimer} style={styles.button}>
         <MaterialCommunityIcons name="clock-digital" size={30} color="white" />
       </TouchableOpacity>
-      <UndoButton
-        isLoaded={props.isLoaded}
-        setTrackTimestamp={props.setTrackTimestamp}
-      />
 
       <StepButtons
         isLoaded={props.isLoaded}

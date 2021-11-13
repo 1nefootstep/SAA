@@ -4,7 +4,7 @@ import * as RNFS from "react-native-fs";
 import CameraRoll from "@react-native-community/cameraroll";
 
 import { APP_NAME } from "../constants/Strings";
-import { default as AKB } from "../state_management/AnnotationKnowledgeBank";
+import { default as AKB } from "../state_management/AKB/AnnotationKnowledgeBank";
 import { default as VKB } from "../state_management/VideoKnowledgeBank";
 
 module FileHandler {

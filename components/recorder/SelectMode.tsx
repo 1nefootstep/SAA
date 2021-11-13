@@ -3,7 +3,7 @@ import React, { useState, useCallback, useMemo } from "react";
 import {  TouchableOpacity } from "react-native-gesture-handler";
 
 import { Text, View } from "../Themed";
-import { default as AKB } from "../../state_management/AnnotationKnowledgeBank";
+import { default as AKB } from "../../state_management/AKB/AnnotationKnowledgeBank";
 import ModeOverlay from "../ModeOverlay";
 
 export interface SelectModeProps {

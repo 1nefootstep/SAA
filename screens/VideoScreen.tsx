@@ -13,7 +13,7 @@ import TimeDisplay from "../components/video-components/TimeDisplay";
 import LoadVideoButton from "../components/video-components/LoadVideoButton";
 import FrameDisplay from "../components/video-components/FrameDisplay";
 import { default as VKB } from "../state_management/VideoKnowledgeBank";
-import { default as AKB } from "../state_management/AnnotationKnowledgeBank";
+import { default as AKB } from "../state_management/AKB/AnnotationKnowledgeBank";
 import { formatTimeFromPosition } from "../components/TimeFormattingUtil";
 
 import LineTool from "../components/video-components/video-side-menu/LineTool";
@@ -48,7 +48,7 @@ export default function VideoScreen({ navigation }) {
   const [timers, setTimers] = useState<Array<number>>([]);
 
   const [currentDistance, setCurrentDistance] = useState<number>(0);
-  const annotation = AKB.getCurrentAnnotation(currentPositionMillis); //delete this
+  // const annotation = AKB.getCurrentAnnotation(currentPositionMillis); //delete this
 
   const setTrackTimestampCorrected = (a: Array<number>) => {
     setTrackTimestamp([-1, ...a]);
@@ -140,7 +140,6 @@ export default function VideoScreen({ navigation }) {
           currentPositionMillis={currentPositionMillis}
           currentDistance={currentDistance}
           setCurrentDistance={setCurrentDistance}
-          annotation={annotation}
           toggleIsLineToolActive={() => {
             setIsLineToolActive(!isLineToolActive);
           }}

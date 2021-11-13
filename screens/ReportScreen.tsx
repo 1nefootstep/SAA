@@ -20,7 +20,7 @@ import { Text as TextSVG } from "react-native-svg";
 
 import MenuButton from "../components/MenuButton";
 import { Text, View } from "../components/Themed";
-import { default as AKB } from "../state_management/AnnotationKnowledgeBank";
+import { default as AKB } from "../state_management/AKB/AnnotationKnowledgeBank";
 
 export default function ReportScreen({ navigation }) {
   const [result, setResult] = React.useState<AKB.ComputedResult>({
