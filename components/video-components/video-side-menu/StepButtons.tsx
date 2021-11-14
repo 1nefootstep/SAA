@@ -43,21 +43,19 @@ export default function StepButtons(props: StepButtonProps) {
   const sizeOfIcon = 30;
 
   return (
-    <View style={{ flex: 1, marginVertical: 1 }}>
-      <View style={{ flex: 1, flexDirection: "row" }}>
-        <MaterialCommunityIcons
-          onPress={() => goToPrevAnnotation()}
-          name="step-backward"
-          size={sizeOfIcon}
-          color="blue"
-        />
-        <MaterialCommunityIcons
-          onPress={() => goToNextAnnotation()}
-          name="step-forward"
-          size={sizeOfIcon}
-          color="blue"
-        />
-      </View>
+    <View style={{ flexDirection: "row" }}>
+      <MaterialCommunityIcons
+        onPress={() => goToPrevAnnotation()}
+        name="step-backward"
+        size={sizeOfIcon}
+        color="blue"
+      />
+      <MaterialCommunityIcons
+        onPress={() => goToNextAnnotation()}
+        name="step-forward"
+        size={sizeOfIcon}
+        color="blue"
+      />
     </View>
   );
 }

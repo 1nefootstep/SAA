@@ -3,6 +3,7 @@ import { AnnotationMode, NameDistance } from "../AnnotationMode/AnnotationMode";
 import * as Pool50m from "../AnnotationMode/Pool50m";
 import * as Pool25m from "../AnnotationMode/Pool25m";
 import { Annotations, Distance, Timestamp } from "./Annotations";
+import { StrokeCountWithTimes, StrokeCounts, StrokeRange } from "./StrokeCounts";
 
 module AnnotationKnowledgeBank {
   export interface AnnotationInformation {
@@ -10,26 +11,8 @@ module AnnotationKnowledgeBank {
     poolDistance: PoolDistance;
     modeIndex: number;
     annotations: Annotations;
-    strokeCounts: StrokeCount[];
+    strokeCounts: StrokeCounts;
   }
-
-  export type StrokeCount =
-    | {
-        hasEndTime: true;
-        startTime: Timestamp;
-        endTime: Timestamp;
-        strokeCount: number;
-      }
-    | {
-        hasEndTime: false;
-        startTime: Timestamp;
-        strokeCount: number;
-      };
-
-  // export interface Timestamp {
-  //   timestamp: number;
-  //   // distance: number;
-  // }
 
   export type CheckpointResponse =
     | {
@@ -110,34 +93,21 @@ module AnnotationKnowledgeBank {
 
   const modePool25m: AnnotationMode[] = [];
 
-  // let currentMode = modes.get(PoolDistance.D50m)![0];
-
   export function defaultAKB(): AnnotationInformation {
     return {
       name: "",
       poolDistance: PoolDistance.Unassigned,
       modeIndex: -1,
       annotations: new Annotations([]),
-      strokeCounts: [],
+      strokeCounts: new StrokeCounts([]),
     };
   }
 
   let annotationInfo = defaultAKB();
 
-  // let undoStack: Array<CheckpointAnnotation> = [];
-
   export function reset() {
     annotationInfo = defaultAKB();
   }
-
-  // export function undoAddedAnnotation(): void {
-  //   const ann: CheckpointAnnotation | undefined = undoStack.pop();
-  //   if (isNotNullNotUndefined(ann)) {
-  //     annotationInfo.annotations = annotationInfo.annotations.filter(
-  //       (e) => e != ann
-  //     );
-  //   }
-  // }
 
   export function deleteAnnotation(distance: Distance) {
     const map = annotationInfo.annotations.annotations;
@@ -176,84 +146,12 @@ module AnnotationKnowledgeBank {
     );
   }
 
-  // export function getCurrentAnnotation(currentPosition: number): NameDistance {
-  //   let foundIndex = -1;
-  //   const currentMode = getCurrentMode();
-  //   for (let i = 0; i < annotationInfo.annotations.length; i++) {
-  //     const currAnnotation = annotationInfo.annotations[i];
-  //     const isCurrPosAfter = currentPosition >= currAnnotation.timestamp;
-
-  //     if (isCurrPosAfter) {
-  //       for (let j = 0; j < currentMode.checkpointNames.length; j++) {
-  //         if (
-  //           currAnnotation.distance ===
-  //           currentMode.checkpointNames[j].distanceMeter
-  //         ) {
-  //           foundIndex = j;
-  //           break;
-  //         }
-  //       }
-  //     }
-  //   }
-  //   if (foundIndex === -1) {
-  //     return currentMode.checkpointNames[0];
-  //   }
-  //   if (foundIndex + 1 < currentMode.checkpointNames.length) {
-  //     return currentMode.checkpointNames[foundIndex + 1];
-  //   }
-  //   return { name: "Checkpoint", distanceMeter: 0 };
-  // }
-
-  export function addStrokeCount(startTime: Timestamp): number {
-    annotationInfo.strokeCounts.push({
-      hasEndTime: false,
-      startTime: startTime,
-      strokeCount: 0,
-    });
-    return annotationInfo.strokeCounts.length - 1;
+  export function addStrokeCount(sr: StrokeRange, sc: StrokeCountWithTimes) {
+    annotationInfo.strokeCounts.set(sr, sc);
   }
 
-  export function updateStrokeCountByIndex(index: number, strokeCount: number) {
-    annotationInfo.strokeCounts[index].strokeCount = strokeCount;
-  }
 
-  export function addEndTimeByIndex(index: number, endTime: number) {
-    annotationInfo.strokeCounts[index] = {
-      ...annotationInfo.strokeCounts[index],
-      hasEndTime: true,
-      endTime: endTime,
-    };
-  }
-
-  export function deleteStrokeCountByIndex(index: number) {
-    annotationInfo.strokeCounts.splice(index, 1);
-  }
-
-  export type SearchStrokeResult =
-    | {
-        found: false;
-      }
-    | {
-        found: true;
-        index: number;
-        stroke: StrokeCount;
-      };
-
-  export function getStrokeInTime(currentPosition: number): SearchStrokeResult {
-    for (let i = 0; i < annotationInfo.strokeCounts.length; i++) {
-      const curr = annotationInfo.strokeCounts[i];
-      const isWithinRange = curr.hasEndTime
-        ? currentPosition >= curr.startTime && currentPosition <= curr.endTime
-        : currentPosition >= curr.startTime;
-
-      if (isWithinRange) {
-        return { found: true, index: i, stroke: curr };
-      }
-    }
-    return { found: false };
-  }
-
-  export function getAllStrokes(): StrokeCount[] {
+  export function getStrokeCounts(): StrokeCounts {
     return annotationInfo.strokeCounts;
   }
 
@@ -336,124 +234,12 @@ module AnnotationKnowledgeBank {
 
   export function loadAnnotationInfo(a: any) {
     console.log(`AKB - loading...`);
-    console.log(`AKB - ${a}`);
+    console.log(`AKB - ${JSON.stringify(a)}...`);
     annotationInfo.name = a.name;
     annotationInfo.poolDistance = a.poolDistance;
     annotationInfo.modeIndex = a.modeIndex;
     annotationInfo.annotations = new Annotations(a.annotations);
-    annotationInfo.strokeCounts = a.strokeCounts;
-  }
-
-  export type DataAndTimeRange =
-    | {
-        hasData: true;
-        data: number;
-        startTime: number;
-        endTime: number;
-      }
-    | {
-        hasData: false;
-        startTime: number;
-        endTime: number;
-      };
-
-  function computeStrokeFrequencies(): Array<DataAndTimeRange> {
-    const sc = annotationInfo.strokeCounts;
-    return sc
-      .filter((s) => s.hasEndTime)
-      .map((s) => {
-        if (s.hasEndTime) {
-          const time = (s.endTime - s.startTime) / 1000; //convert to seconds
-          return {
-            hasData: true,
-            data: s.strokeCount / time,
-            startTime: s.startTime,
-            endTime: s.endTime,
-          };
-        }
-        // should never reach this line
-        throw "Should have already filtered non end-time strokes";
-      });
-  }
-
-  function getDistanceTimeArray(): Array<{ distance: number; time: number }> {
-    const annMap = annotationInfo.annotations.annotations;
-    return Array.from(annMap.entries())
-      .map((e) => {
-        return { distance: e[0], time: e[1] };
-      })
-      .sort((a, b) => a.distance - b.distance);
-  }
-
-  function computeAverageVelocities(): Array<DataAndTimeRange> {
-    const anns = getDistanceTimeArray();
-    let prevTimestamp = -1;
-    let prevDistance = -1;
-    let isFirst = true;
-    const result: Array<DataAndTimeRange> = [];
-    for (let i = 0; i < anns.length; i++) {
-      if (isFirst) {
-        isFirst = false;
-        prevTimestamp = anns[i].time;
-        prevDistance = anns[i].distance;
-      } else {
-        const currTimestamp = anns[i].time;
-        const currDistance = anns[i].distance;
-        const timeTaken = (currTimestamp - prevTimestamp) / 1000; // convert to seconds
-        const distance = currDistance - prevDistance;
-        result.push({
-          hasData: true,
-          data: distance / timeTaken,
-          startTime: prevTimestamp,
-          endTime: currTimestamp,
-        });
-        prevTimestamp = currTimestamp;
-        prevDistance = currDistance;
-      }
-    }
-    return result;
-  }
-
-  function computeEfficiency(strokeLength: number, strokeFrequency: number) {
-    return strokeLength / strokeFrequency;
-  }
-
-  export interface ComputedResult {
-    distanceToTimeMap: { distance: number; time: number }[];
-    strokeLengths: DataAndTimeRange[];
-    strokeFrequencies: DataAndTimeRange[];
-    averageVelocities: DataAndTimeRange[];
-  }
-
-  export function computeResult(): ComputedResult {
-    const averageVelocitiesWithTimestamp = computeAverageVelocities();
-    const strokeFrequenciesWithTimestamp = computeStrokeFrequencies();
-    const findStrokeFreqForCheckpoint = (startTime: number, endTime: number) =>
-      strokeFrequenciesWithTimestamp.find(
-        (e) => e.startTime >= startTime && e.endTime <= endTime
-      );
-
-    const strokeLengthsWithTimestamp: Array<DataAndTimeRange> =
-      averageVelocitiesWithTimestamp.map((e) => {
-        const found = findStrokeFreqForCheckpoint(e.startTime, e.endTime);
-        if (e.hasData && found !== undefined && found.hasData) {
-          return {
-            hasData: true,
-            data: e.data / found.data,
-            startTime: e.startTime,
-            endTime: e.endTime,
-          };
-        }
-        return { hasData: false, startTime: e.startTime, endTime: e.endTime };
-      });
-
-    const distanceTimeMap = getDistanceTimeArray();
-    return {
-      averageVelocities: averageVelocitiesWithTimestamp,
-      strokeFrequencies: strokeFrequenciesWithTimestamp,
-      strokeLengths: strokeLengthsWithTimestamp,
-      distanceToTimeMap: distanceTimeMap,
-    };
+    annotationInfo.strokeCounts = new StrokeCounts(a.strokeCounts);
   }
 }
 

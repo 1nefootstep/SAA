@@ -13,6 +13,8 @@ import MenuButton from "../components/MenuButton";
 import SelectMode from "../components/recorder/SelectMode";
 import TimestampButton from "../components/recorder/TimestampButton";
 
+import { Equatable } from "@esfx/equatable";
+
 async function cameraPermission(): Promise<boolean> {
   if (Platform.OS === "android") {
     const cameraPermission = await Camera.getCameraPermissionStatus();

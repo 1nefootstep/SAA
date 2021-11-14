@@ -41,3 +41,30 @@ export function compareMaps<K, V>(map1: Map<K, V>, map2: Map<K, V>) {
   }
   return true;
 }
+
+/**
+ * This is meant to replicate the behaviour for map.
+ * But somehow, [T1, G][].map => [T2, G][][].
+ * Instead, this function take [T1, G][] and returns [T2, G][].
+ * @param nestedArr [T1, G][]
+ * @param fn function for T1 => T2
+ * @returns [T2, G][]
+ */
+export function nestedArrayMap<T1, T2, G>(
+  nestedArr: Array<[T1, G]>,
+  fn: (t1: T1) => T2
+) {
+  const prepareArg: Array<[T2, G]> = [];
+  nestedArr.forEach((e) => prepareArg.push([fn(e[0]), e[1]]));
+  return prepareArg;
+}
+
+/**
+ * Converts an array of number to string
+ * by joining with '-'
+ * @param nums Array of number
+ */
+export function numbersToStringRange(nums: Array<number>) {
+  console.log(`numbersToStringRange, args: ${nums}`);
+  return nums.map(e=>e.toString()).join('-');
+}

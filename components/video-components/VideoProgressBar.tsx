@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 import { Text, View } from "../Themed";
 
 import { Video, AVPlaybackStatus } from "expo-av";
-import { RefObject, useRef, useState } from "react";
+import { RefObject, useCallback, useRef, useState } from "react";
 import { Slider } from "@miblanchard/react-native-slider";
 
 export interface VideoProgressBarProps {
@@ -40,6 +40,18 @@ export default function VideoProgressBar(props: VideoProgressBarProps) {
     }
   };
 
+  // const renderTrackMarkComponent = useCallback((index: number) => {
+  //   if (props.trackMarks === null || props.trackMarks === undefined) {
+  //     return;
+  //   }
+  //   const currentMarkValue = props.trackMarks[index];
+  //   const currentSliderValue = props.positionMillis;
+  //   const style =
+  //     currentMarkValue > Math.max(currentSliderValue)
+  //       ? styles.activeMark
+  //       : styles.inactiveMark;
+  //   return <View style={style} />;
+  // },[props.trackMarks]);
   const renderTrackMarkComponent = (index: number) => {
     if (props.trackMarks === null || props.trackMarks === undefined) {
       return;
@@ -61,7 +73,6 @@ export default function VideoProgressBar(props: VideoProgressBarProps) {
           thumbStyle={{ backgroundColor: "green" }}
           step={1}
           trackMarks={props.trackMarks}
-          // trackMarks={[1, 1000, 2000, 3000]}
           renderTrackMarkComponent={renderTrackMarkComponent}
           value={props.positionMillis}
           onValueChange={handleOnValueChange}
@@ -92,7 +103,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 5,
     marginRight: 10,
-    backgroundColor: 'black',
+    backgroundColor: "black",
   },
   activeMark: {
     borderColor: "red",

@@ -1,6 +1,7 @@
+import { StrokeRange } from "../AKB/StrokeCounts";
 import { AnnotationMode, NameDistance } from "./AnnotationMode";
 
-function firstLap(startDistance: number): Array<NameDistance> {
+function firstLapCheckpoint(startDistance: number): Array<NameDistance> {
   return [
     { name: `${startDistance}m`, distanceMeter: startDistance },
     { name: `${startDistance + 15}m`, distanceMeter: startDistance + 15 },
@@ -11,7 +12,7 @@ function firstLap(startDistance: number): Array<NameDistance> {
   ];
 }
 
-function subsequentLap(startDistance: number): Array<NameDistance> {
+function subsequentLapCheckpoint(startDistance: number): Array<NameDistance> {
   return [
     { name: `${startDistance + 15}m`, distanceMeter: startDistance + 15 },
     { name: `${startDistance + 25}m`, distanceMeter: startDistance + 25 },
@@ -20,21 +21,31 @@ function subsequentLap(startDistance: number): Array<NameDistance> {
   ];
 }
 
+function strokeRangePerLap(startDistance: number): Array<StrokeRange> {
+  return [
+    new StrokeRange(startDistance + 15, startDistance + 25),
+    new StrokeRange(startDistance + 25, startDistance + 45),
+  ];
+}
+
 class Pool50m extends AnnotationMode {
   constructor(style: string, totalDistance: number) {
     let distanceLeft = totalDistance;
     let checkpoints: Array<NameDistance> = [];
+    let strokeRanges: Array<StrokeRange> = [];
     const POOL_DISTANCE = 50;
+    let lastDistance = 0;
     while (distanceLeft > 0) {
+      strokeRanges = strokeRanges.concat(strokeRangePerLap(lastDistance));
       if (checkpoints.length === 0) {
-        checkpoints = checkpoints.concat(firstLap(0));
+        checkpoints = checkpoints.concat(firstLapCheckpoint(0));
       } else {
-        const lastDistance = checkpoints[checkpoints.length - 1].distanceMeter;
-        checkpoints = checkpoints.concat(subsequentLap(lastDistance));
+        checkpoints = checkpoints.concat(subsequentLapCheckpoint(lastDistance));
       }
+      lastDistance += POOL_DISTANCE;
       distanceLeft -= POOL_DISTANCE;
     }
-    super(`${style}-${totalDistance}m`, checkpoints);
+    super(`${style}-${totalDistance}m`, checkpoints, strokeRanges);
   }
 }
 

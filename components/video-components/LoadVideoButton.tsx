@@ -60,6 +60,7 @@ export default function LoadVideoButton(props: LoadVideoProps) {
         try {
           dataObject = JSON.parse(r.response);
           console.log("successful parsing of file response");
+          console.log(`file response: ${JSON.stringify(dataObject)}`);
         } catch (err) {
           console.log(`error: ${err}`);
 

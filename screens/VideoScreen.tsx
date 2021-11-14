@@ -64,8 +64,10 @@ export default function VideoScreen({ navigation }) {
     if (isNotNullNotUndefined(video.current)) {
       const status: AVPlaybackStatus = await video.current!.getStatusAsync();
       if (status.isLoaded) {
+        console.log(JSON.stringify(status));
         setDurationFrameNumber(
-          VKB.timeToFrameNumber(status?.durationMillis ?? 0)
+          // VKB.timeToFrameNumber(status?.durationMillis ?? 0)
+          VKB.getVideoInformation().lastFrameNumber
         );
         setFrameRate(VKB.getAvgFrameRate());
         setIsLoaded(true);
@@ -243,15 +245,15 @@ const styles = StyleSheet.create({
     flex: 9,
     justifyContent: "center",
     flexDirection: "row",
-    borderWidth: 1,
-    borderColor: "yellow",
+    // borderWidth: 1,
+    // borderColor: "yellow",
   },
   video: {
     // width: "20%",
     height: "100%",
     aspectRatio: 3 / 2,
-    borderWidth: 1,
-    borderColor: "red",
+    // borderWidth: 1,
+    // borderColor: "red",
     // backgroundColor: 'blue',
   },
   controlRow: {

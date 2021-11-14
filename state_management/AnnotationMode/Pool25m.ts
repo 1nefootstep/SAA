@@ -1,6 +1,7 @@
+import { StrokeRange } from "../AKB/StrokeCounts";
 import { AnnotationMode, NameDistance } from "./AnnotationMode";
 
-function firstLap(startDistance: number): Array<NameDistance> {
+function firstLapCheckpoint(startDistance: number): Array<NameDistance> {
   return [
     { name: `${startDistance}m`, distanceMeter: startDistance },
     { name: `${startDistance + 15}m`, distanceMeter: startDistance + 15 },
@@ -9,7 +10,7 @@ function firstLap(startDistance: number): Array<NameDistance> {
   ];
 }
 
-function subsequentLap(startDistance: number): Array<NameDistance> {
+function subsequentLapCheckpoint(startDistance: number): Array<NameDistance> {
   return [
     { name: `${startDistance + 10}m`, distanceMeter: startDistance + 10 },
     { name: `${startDistance + 20}m`, distanceMeter: startDistance + 20 },
@@ -17,21 +18,37 @@ function subsequentLap(startDistance: number): Array<NameDistance> {
   ];
 }
 
+function firstStrokeRange(startDistance: number): Array<StrokeRange> {
+  return [
+    new StrokeRange(startDistance + 15, startDistance + 20),
+  ];
+}
+
+function subsequentStrokeRange(startDistance: number): Array<StrokeRange> {
+  return [
+    new StrokeRange(startDistance + 10, startDistance + 20),
+  ];
+}
+
 class Pool25m extends AnnotationMode {
   constructor(style: string, totalDistance: number) {
     let distanceLeft = totalDistance;
     let checkpoints: Array<NameDistance> = [];
+    let strokeRanges: Array<StrokeRange> = [];
     const POOL_DISTANCE = 25;
-    while (distanceLeft > 0) {
+    let lastDistance = 0;
+    while (distanceLeft > 0) {      
       if (checkpoints.length === 0) {
-        checkpoints = checkpoints.concat(firstLap(0));
+        checkpoints = checkpoints.concat(firstLapCheckpoint(0));
+        strokeRanges = strokeRanges.concat(firstStrokeRange(lastDistance));
       } else {
-        const lastDistance = checkpoints[checkpoints.length - 1].distanceMeter;
-        checkpoints = checkpoints.concat(subsequentLap(lastDistance));
+        checkpoints = checkpoints.concat(subsequentLapCheckpoint(lastDistance));
+        strokeRanges = strokeRanges.concat(subsequentStrokeRange(lastDistance));
       }
+      lastDistance += POOL_DISTANCE;
       distanceLeft -= POOL_DISTANCE;
     }
-    super(`${style}-${totalDistance}m`, checkpoints);
+    super(`${style}-${totalDistance}m`, checkpoints, strokeRanges);
   }
 }
 

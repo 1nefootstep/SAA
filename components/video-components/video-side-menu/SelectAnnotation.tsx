@@ -1,4 +1,4 @@
-import React, { RefObject, useCallback, useState } from "react";
+import React, { RefObject, useCallback, useMemo, useState } from "react";
 import { StyleSheet } from "react-native";
 
 import DropDownPicker from "react-native-dropdown-picker";
@@ -7,6 +7,7 @@ import { Video } from "expo-av";
 import { default as AKB } from "../../../state_management/AKB/AnnotationKnowledgeBank";
 import { NameDistance } from "../../../state_management/AnnotationMode/AnnotationMode";
 import { isNotNullNotUndefined } from "../../Util";
+import { View } from "../../Themed";
 
 export interface SelectAnnotationProps {
   isLoaded: boolean;
@@ -24,30 +25,29 @@ export default function SelectAnnotation(props: SelectAnnotationProps) {
       return { label: e.name, value: e.distanceMeter };
     });
 
-  const reorderCheckpoints = (nd: Array<NameDistance>, d?: number) => {
-    const before: Array<NameDistance> = [];
-    const after: Array<NameDistance> = [];
-    const dist = d ?? props.currentDistance;
-    for (let i = 0; i < nd.length; i++) {
-      if (nd[i].distanceMeter >= dist) {
-        after.push(nd[i]);
-      } else {
-        before.push(nd[i]);
-      }
-    }
-    return after.concat(before);
-  };
+  // const reorderCheckpoints = (nd: Array<NameDistance>, d?: number) => {
+  //   const before: Array<NameDistance> = [];
+  //   const after: Array<NameDistance> = [];
+  //   const dist = d ?? props.currentDistance;
+  //   for (let i = 0; i < nd.length; i++) {
+  //     if (nd[i].distanceMeter >= dist) {
+  //       after.push(nd[i]);
+  //     } else {
+  //       before.push(nd[i]);
+  //     }
+  //   }
+  //   return after.concat(before);
+  // };
+  const items = useMemo(() => mapToSelectItems(checkpoints), [checkpoints]);
+  // const [items, setItems] = useState(
+  //   mapToSelectItems(reorderCheckpoints(checkpoints))
+  // );
 
-  const [items, setItems] = useState(
-    mapToSelectItems(reorderCheckpoints(checkpoints))
-  );
-
-  const updateItems = useCallback(() => {
-    setItems(mapToSelectItems(reorderCheckpoints(checkpoints)));
-  }, [props.currentDistance]);
+  // const updateItems = useCallback(() => {
+  //   setItems(mapToSelectItems(reorderCheckpoints(checkpoints)));
+  // }, [props.currentDistance]);
 
   const updateCurrentDistance = (d: number) => {
-    props.setCurrentDistance(d);
     goToPosition(d)
       .then((bool) =>
         bool
@@ -90,12 +90,13 @@ export default function SelectAnnotation(props: SelectAnnotationProps) {
     <DropDownPicker
       style={styles.picker}
       open={open}
+      min={3}
+      max={5}
       value={props.currentDistance}
       items={items}
       setOpen={setOpen}
       setValue={props.setCurrentDistance}
-      setItems={setItems}
-      onOpen={updateItems}
+      autoScroll={true}
       onChangeValue={(value) =>
         typeof value === "number"
           ? updateCurrentDistance(value)
@@ -103,12 +104,12 @@ export default function SelectAnnotation(props: SelectAnnotationProps) {
               `SelectAnnotation - value was of wrong type: ${typeof value}`
             )
       }
-      disabled={!props.isLoaded}
     />
   );
 }
 
 const styles = StyleSheet.create({
+  container: {},
   picker: {
     width: 100,
     backgroundColor: "gainsboro",

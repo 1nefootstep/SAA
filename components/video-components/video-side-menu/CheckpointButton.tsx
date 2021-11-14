@@ -4,7 +4,7 @@ import { TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Video } from "expo-av";
 
-import { Text } from "../../Themed";
+import { Text, View } from "../../Themed";
 import { default as AKB } from "../../../state_management/AKB/AnnotationKnowledgeBank";
 import FileHandler from "../../../FileHandler/FileHandler";
 import VideoKnowledgeBank from "../../../state_management/VideoKnowledgeBank";
@@ -45,14 +45,16 @@ export default function CheckpointButton(props: CheckpointButtonProps) {
   };
 
   return (
-    <TouchableOpacity onPress={addCheckpoint} style={styles.button}>
-      <Ionicons name="checkmark" size={24} color="white" />
-    </TouchableOpacity>
+    <View style={styles.container}>
+      <TouchableOpacity onPress={addCheckpoint}>
+        <Ionicons name="checkmark" size={24} color="white" />
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
+  container: {
     margin: 3,
   },
 });
